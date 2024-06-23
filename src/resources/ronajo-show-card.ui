@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+  <requires lib="Adw" version="1.0" />
+  <template class="RonajoShowCard" parent="GtkButton">
+    <style>
+      <class name="card"/>
+    </style>
+    <property name="child">
+
+      <object class="GtkBox">
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+        <property name="orientation">horizontal</property>
+        <child>
+          <object class="GtkImage" id="image">
+            <property name="pixel-size">130</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">vertical</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="info_box">
+            <property name="orientation">vertical</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="margin-top">10</property>
+            <property name="margin-start">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="margin-end">10</property>
+            <child>
+              <object class="GtkLabel" id="title_label">
+                <property name="halign">start</property>
+                <property name="ellipsize">3</property>
+                <style>
+                  <class name="title-1"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="description_label">
+                <property name="margin-top">20</property>
+                <property name="margin-start">13</property>
+                <property name="halign">start</property>
+                <property name="ellipsize">3</property>
+                <property name="wrap">true</property>
+                <property name="max-width-chars">50</property>
+                <style>
+                  <class name="caption"/>
+                </style>
+              </object>
+            </child>
+          </object>
+
+        </child>
+
+
+      </object>
+    </property>
+
+  </template>
+</interface>

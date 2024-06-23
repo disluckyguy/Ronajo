@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="ronajo">
+	<schema id="io.github.ronajo" path="/io/github/ronajo/">
+	  <key name="config-path" type="s">
+	    <default>"Home"</default>
+      <summary>Path of the config folder</summary>
+	  </key>
+	</schema>
+</schemalist>

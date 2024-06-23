@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/ronajo">
+
+    <file preprocess="xml-stripblanks">resources/ronajo-window.ui</file>
+    <file preprocess="xml-stripblanks">resources/ronajo-show-card.ui</file>
+    <file preprocess="xml-stripblanks">resources/ronajo-show-page.ui</file>
+    <file preprocess="xml-stripblanks">resources/ronajo-preferences-dialog.ui</file>
+    <file preprocess="xml-stripblanks">resources/ronajo-video-page.ui</file>
+    <file preprocess="xml-stripblanks">resources/ronajo-episode-row.ui</file>
+    <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
+    <file>resources/ronajo-styles.css</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/remote-terminal-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/settings-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/starred-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/play-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/edit-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/library-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/video-clip-symbolic.svg</file>
+     <file preprocess="xml-stripblanks">icons/scalable/emblems/heart-filled-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/heart-outline-thick-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/down-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/up-symbolic.svg</file>
+
+
+  </gresource>
+</gresources>
+

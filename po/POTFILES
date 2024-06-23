@@ -1,0 +1,4 @@
+data/io.github.ronajo.desktop.in
+data/io.github.ronajo.metainfo.xml.in
+data/io.github.ronajo.gschema.xml
+src/window.ui

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+  <requires lib="Adw" version="1.0" />
+  <template class="RonajoPreferencesDialog" parent="AdwPreferencesDialog">
+    <property name="content-width">500</property>
+    <property name="content-height">400</property>
+    <property name="follows-content-size">true</property>
+
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="icon-name">settings-symbolic</property>
+        <property name="name">general</property>
+        <property name="title">General</property>
+
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">General</property>
+            <child>
+              <object class="AdwActionRow" id="change_config_row">
+                <property name="title">Configs Location</property>
+                <property name="subtitle">home</property>
+                <property name="activatable-widget">change_config_button</property>
+                <child type="suffix">
+                  <object class="GtkButton" id="change_config_button">
+                    <property name="margin-top">5</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="action-name">win.change-config</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                    <child>
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">edit-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="icon-name">remote-terminal-symbolic</property>
+        <property name="name">secure-shell</property>
+        <property name="title">Secure Shell</property>
+
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Devices</property>
+            <property name="header-suffix">
+              <object class="GtkButton" id="add_device">
+                <style>
+                  <class name="flat"/>
+                </style>
+                <property name="icon-name">list-add-symbolic</property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+
+  </template>
+</interface>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+  <requires lib="Adw" version="1.0" />
+  <template class="RonajoVideoPage" parent="AdwNavigationPage">
+    <property name="tag">video-page</property>
+    <property name="title">Video Page</property>
+    <property name="child">
+      <object class="GtkOverlay">
+
+        <child type="overlay">
+          <object class="AdwHeaderBar" id="shows_header_bar">
+            <property name="valign">start</property>
+            <style>
+              <class name="osd"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkVideo" id="video">
+            <property name="graphics-offload">1</property>
+            <property name="autoplay">true</property>
+            <style>
+              <class name="toolbar"/>
+              <class name="osd"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
