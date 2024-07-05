@@ -17,13 +17,13 @@
           </object>
         </child>
         <child>
-          <object class="GtkVideo" id="video">
-            <property name="graphics-offload">1</property>
-            <property name="autoplay">true</property>
-            <style>
-              <class name="toolbar"/>
-              <class name="osd"/>
-            </style>
+          <object class="GtkPicture">
+            <property name="paintable">
+              <object class="GtkVideo" id="show_video">
+                <property name="graphics-offload">1</property>
+                <property name="autoplay">true</property>
+              </object>
+            </property>
           </object>
         </child>
       </object>

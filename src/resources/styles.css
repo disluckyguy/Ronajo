@@ -1,0 +1,18 @@
+.show_card_label {
+  background: @view_bg_color;
+}
+
+.transparent_bg {
+  background: transparent;
+}
+
+.window-controls-osd > button > image {
+    color: alpha(white, .9);
+    background-color: alpha(black, .7);
+}
+
+.window-controls-osd > button > image:hover {
+    color: white;
+    background-color: alpha(mix(black, white, .15), .65);
+}
+

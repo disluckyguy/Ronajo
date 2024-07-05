@@ -10,7 +10,7 @@ use std::cell;
 
 #[derive(CompositeTemplate, Default)]
 // #[properties(wrapper_type = super::EpisodeRow)]
-#[template(resource = "/io/github/ronajo/resources/ronajo-episode-row.ui")]
+#[template(file = "src/resources/episode-row.blp")]
 pub struct RonajoEpisodeRow {
 
     pub bindings: cell::RefCell<Vec<glib::Binding>>,
@@ -37,12 +37,6 @@ impl ObjectSubclass for RonajoEpisodeRow {
 impl ObjectImpl for RonajoEpisodeRow {
     fn constructed(&self) {
         self.parent_constructed();
-
-        let obj = self.obj();
-
-        obj.connect_clicked(glib::clone!(@weak self as button => move |window| {
-
-        }));
     }
 }
 

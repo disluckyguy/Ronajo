@@ -1,0 +1,113 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoWindow: Adw.ApplicationWindow {
+  default-width: 600;
+  default-height: 500;
+  width-request: 360;
+  height-request: 294;
+
+  Adw.Breakpoint {
+    condition("max-width: 550sp")
+    setters {
+      switcher_bar.reveal: true;
+      header_bar.title-widget: null;
+    }
+  }
+
+  content: Adw.NavigationView navigation_view {
+    Adw.NavigationPage shows_page {
+      title: "Shows";
+      child: Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar header_bar {
+          title-widget: Adw.ViewSwitcher {
+              stack: stack;
+              policy: wide;
+          };
+          [end]
+          MenuButton {
+            primary: true;
+            icon-name: "open-menu_symbolic";
+            tooltip-text: "Menu";
+            menu-model: primary_menu;
+          }
+        }
+
+        content: Adw.ViewStack stack {
+          Adw.ViewStackPage {
+            title: "Anime";
+            name: "anime";
+            icon-name: "video-clip-symbolic";
+            child: Stack show_stack {
+              StackPage {
+                child: Adw.ClampScrollable show_page {
+                  maximum-size: 1500;
+                  ListView show_view {
+                  styles [
+                      "transparent-bg"
+                    ]
+                  }
+                };
+              }
+
+              StackPage empty_shows {
+                child: Adw.StatusPage {
+                  title: "No Shows Available";
+                  icon-name: "video-clip-symbolic";
+                };
+              }
+            };
+          }
+
+          Adw.ViewStackPage {
+            title: "Library";
+            name: "library";
+            icon-name: "library-symbolic";
+            child: Stack library_stack {
+              StackPage library_page{
+                child: Adw.ClampScrollable {
+                  maximum-size: 1500;
+                  ListView library_view {
+                  styles [
+                      "transparent-bg"
+                    ]
+                  }
+                };
+              }
+
+              StackPage empty_library {
+                child: Adw.StatusPage {
+                  title: "No Saved Shows";
+                  icon-name: "library-symbolic";
+                };
+              }
+            };
+          }
+        };
+
+        [bottom]
+        Adw.ViewSwitcherBar switcher_bar{
+          stack: stack;
+        }
+      };
+    }
+  };
+}
+
+menu primary_menu {
+  section {
+    item {
+        label: _("Preferences");
+        action: "app.preferences";
+    }
+    item {
+        label: _("Keyboard Shortcuts");
+        action: "win.show-help-overlay";
+    }
+    item {
+        label: _("About Gstest");
+        action: "app.about";
+    }
+  }
+}

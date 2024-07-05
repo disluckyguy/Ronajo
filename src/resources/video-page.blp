@@ -1,0 +1,310 @@
+using Gtk 4.0;
+using Adw 1;
+
+
+template $RonajoVideoPage: Adw.NavigationPage {
+  content: Adw.ToolbarView toolbar_view {
+    content: Overlay video_overlay {
+      Picture picture {
+      }
+      [overlay]
+      Revealer header_revealer {
+        transition-type: crossfade;
+        WindowHandle {
+          Box {
+            margin-top: 6;
+            margin-bottom: 3;
+            margin-end: 6;
+            margin-start: 3;
+            spacing: 6;
+
+            ToggleButton fullscreen_button {
+              valign: start;
+              halign: end;
+              action-name: "win.toggle-fullscreen";
+              icon-name: "arrows-pointing-outward-symbolic";
+              styles [
+                "osd",
+                "circular"
+              ]
+            }
+            MenuButton {
+              hexpand: true;
+              valign: start;
+              halign: end;
+
+              styles [
+                "osd",
+                "circular"
+              ]
+              primary: true;
+              icon-name: "open-menu-symbolic";
+              tooltip-text: "Menu";
+              menu-model: primary_menu;
+            }
+
+
+            WindowControls window_controls {
+              valign: start;
+              side: end;
+              halign: end;
+              styles [
+               "window-controls-osd"
+              ]
+            }
+          }
+        }
+
+
+        }
+
+        [overlay]
+        Adw.Clamp {
+          maximum-size: 1000;
+          valign: end;
+          Revealer controls_revealer {
+            transition-type: crossfade;
+            Box controls {
+              margin-start: 10;
+              margin-end: 10;
+              margin-bottom: 10;
+              orientation: vertical;
+              hexpand: true;
+              styles [
+                "toolbar",
+                "osd",
+              ]
+              Box {
+
+              }
+              CenterBox {
+                orientation: horizontal;
+                hexpand: true;
+                [start]
+                Label position_label {
+                  width-request: 40;
+                  single-line-mode: true;
+                  label: "-";
+                  styles [
+                    "caption"
+                  ]
+                }
+
+                [center]
+                Label {
+                  halign: center;
+                  label: "Big Buck Bunny";
+                  styles [
+                    "header"
+                  ]
+                  hexpand: true;
+                }
+
+                [end]
+                Box {
+                  MenuButton Settings_button {
+                    direction: up;
+                    icon-name: "settings-symbolic";
+                    popover: settings_menu;
+                  }
+                  Label duration_label {
+                    width-request: 40;
+                    single-line-mode: true;
+                    label: "-";
+                    styles [
+                      "caption"
+                    ]
+                  }
+                }
+              }
+
+              Scale video_slider {
+                  hexpand: true;
+                  styles [
+                    "accent"
+                  ]
+                  adjustment: Adjustment {
+                    lower:  0;
+                    upper: 100;
+                    value: 0;
+                  };
+                }
+
+              CenterBox {
+
+                orientation: horizontal;
+                hexpand: true;
+
+                [start]
+                ToggleButton lock_ui_button {
+                  styles [
+                    "flat",
+                    "circular"
+                  ]
+                  halign: end;
+                  icon-name: "padlock2-symbolic";
+                }
+
+                [center]
+                Box {
+                  Button seek_backward {
+                    icon-name: "seek-backward-large-symbolic";
+                    tooltip-text: "backwards 10 seconds";
+                    action-name: "vid.seek-backward";
+                  }
+
+                  ToggleButton play_button {
+                    icon-name: "seek-backward-large-symbolic";
+                    tooltip-text: "Pause/Continue";
+                  }
+
+                  Button seek_forward {
+                    icon-name: "seek-forward-large-symbolic";
+                    tooltip-text: "forwards 10 seconds";
+                    action-name: "vid.seek-forward";
+                  }
+
+
+
+                }
+                [end]
+                ToggleButton loop_button {
+                  styles [
+                    "flat",
+                    "circular"
+                  ]
+                  halign: end;
+                  icon-name: "loop-arrow-symbolic";
+                }
+              }
+            }
+          }
+        }
+        [overlay]
+        Revealer rate_revealer {
+          transition-type: crossfade;
+          transition-duration: 0.25;
+          halign: center;
+          valign: start;
+          reveal-child: true;
+          Box {
+            margin-top: 10;
+            styles [
+              "osd",
+              "toolbar"
+            ]
+            Label rate_label {
+              halign: center;
+              valign: center;
+              vexpand: true;
+              hexpand: true;
+              styles [
+                "title-3"
+              ]
+            }
+          }
+        }
+        [overlay]
+        Revealer volume_slider_revealer {
+          transition-type: crossfade;
+          valign: center;
+          halign: start;
+          Box {
+            orientation: vertical;
+            height-request: 150;
+            margin-start: 10;
+            styles [
+              "osd",
+              "toolbar"
+            ]
+            Scale audio_slider {
+              inverted: true;
+              orientation: vertical;
+              vexpand: true;
+              styles [
+                "accent"
+              ]
+              adjustment: Adjustment {
+                lower:  0;
+                upper: 100;
+                value: 100;
+              };
+          }
+          ToggleButton mute_button {
+            icon-name:"audio-volume-high-symbolic";
+          }
+        }
+      }
+    };
+  };
+}
+
+Popover settings_menu {
+  position: bottom;
+
+  Box {
+    width-request: 100;
+    orientation: vertical;
+    spacing: 5;
+    hexpand: true;
+    homogeneous: true;
+    Box {
+      ToggleButton menu_mute_button {
+        icon-name: "audio-volume-high-symbolic";
+        styles [
+          "circular",
+          "flat"
+        ]
+      }
+
+      SpinButton volume_spin {
+        hexpand: true;
+        adjustment: Adjustment {
+            lower:  0;
+            upper: 100;
+            value: 100;
+            step-increment: 5;
+        };
+      }
+    }
+    Box {
+      ToggleButton {
+        icon-name: "playback-options-symbolic";
+        sensitive: false;
+        styles [
+          "circular",
+          "flat"
+        ]
+      }
+
+      SpinButton rate_spin {
+        hexpand: true;
+        digits: 2;
+        adjustment: Adjustment {
+            lower:  0.25;
+            upper: 2;
+            value: 1;
+            step-increment: 0.25;
+        };
+      }
+    }
+  }
+}
+
+menu primary_menu {
+  section {
+    item {
+        label: _("Preferences");
+        action: "app.preferences";
+    }
+    item {
+        label: _("Keyboard Shortcuts");
+        action: "win.show-help-overlay";
+    }
+    item {
+        label: _("About Gstest");
+        action: "app.about";
+    }
+  }
+}
+

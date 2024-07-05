@@ -56,12 +56,11 @@ impl RonajoShowPage {
         let status_binding = object.bind_property("airing", &status_label, "label")
             .sync_create()
             .transform_to(|_, airing| {
-                let mut label = String::new();
-                if airing {
-                    label = "Airing".to_string();
+                let label = if airing {
+                    "Airing".to_string()
                 } else {
-                    label = "Finsihed Airing".to_string();
-                }
+                    "Finsihed Airing".to_string()
+                };
                 Some(label.to_value())
             })
             .build();
@@ -210,13 +209,11 @@ impl RonajoShowPage {
 
         imp.expand_button.bind_property("active",&imp.expand_button.get(), "icon-name")
             .transform_to(|_, active: bool| {
-                let mut icon_name = String::new();
-
-                if active {
-                    icon_name = String::from("up-symbolic");
+                let icon_name = if active {
+                    String::from("up-symbolic")
                 } else {
-                    icon_name = String::from("down-symbolic");
-                }
+                    String::from("down-symbolic")
+                };
 
                 Some(icon_name)
             })
@@ -225,13 +222,11 @@ impl RonajoShowPage {
 
         imp.add_to_lib_btn.bind_property("active",&imp.add_to_lib_btn.get(), "icon-name")
             .transform_to(|_, active: bool| {
-                let mut icon_name = String::new();
-
-                if active {
-                    icon_name = String::from("heart-filled-symbolic");
+                let icon_name = if active {
+                    String::from("heart-filled-symbolic")
                 } else {
-                    icon_name = String::from("heart-outline-thick-symbolic");
-                }
+                    String::from("heart-outline-thick-symbolic")
+                };
 
                 Some(icon_name.to_value())
             })

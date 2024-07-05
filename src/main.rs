@@ -29,6 +29,7 @@ mod show_data;
 mod episode_row;
 mod episode_object;
 mod video_page;
+mod tools;
 
 use self::application::RonajoApplication;
 use self::window::RonajoWindow;

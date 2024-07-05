@@ -56,22 +56,21 @@ mod imp {
         // tries to launch a "second instance" of the application. When they try
         // to do that, we'll just present any existing window.
         fn activate(&self) {
-            let mut path = String::new();
-
             let settings = gio::Settings::new("io.github.ronajo");
-            if settings.string("config-path") == "Home" {
-                path = home::home_dir().expect("failed to get home dir").into_os_string().into_string().expect("failed to convert to string");
+            let path = if settings.string("config-path") == "Home" {
+                home::home_dir().expect("failed to get home dir").into_os_string().into_string().expect("failed to convert to string")
             } else {
-                path = settings.string("config-path").to_string();
-            }
-            fs::create_dir(format!("{}/.ronajo", path));
-            fs::create_dir(format!("{}/.ronajo/ratings", path));
-            fs::create_dir(format!("{}/.ronajo/notes", path));
-            fs::create_dir(format!("{}/.ronajo/devices", path));
+                settings.string("config-path").to_string()
+            };
+
+            fs::create_dir(format!("{}/.ronajo", path)).expect("faield to create directory");
+            fs::create_dir(format!("{}/.ronajo/ratings", path)).expect("faield to create directory");
+            fs::create_dir(format!("{}/.ronajo/notes", path)).expect("faield to create directory");
+            fs::create_dir(format!("{}/.ronajo/devices", path)).expect("faield to create directory");
 
             let application = self.obj();
             let provider = gtk::CssProvider::new();
-            provider.load_from_resource("/io/github/ronajo/resources/ronajo-styles.css");
+            provider.load_from_resource("/io/github/ronajo/resources/styles.css");
 
             gtk::style_context_add_provider_for_display(
                 &gtk::gdk::Display::default().expect("Could not connect to a display."),
@@ -144,3 +143,4 @@ impl RonajoApplication {
         dialog.present(&window);
     }
 }
+

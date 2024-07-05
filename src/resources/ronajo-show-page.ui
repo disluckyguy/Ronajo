@@ -59,9 +59,6 @@
                                 <property name="margin-start">0</property>
                                 <property name="icon-name">heart-outline-thick-symbolic</property>
                                 <property name="halign">start</property>
-                                <!-- <style> -->
-                                <!--   <class name="flat"/> -->
-                                <!-- </style> -->
                               </object>
                             </child>
 
@@ -84,6 +81,16 @@
                                 </child>
                               </object>
 
+                            </child>
+
+                            <child>
+                              <object class="GtkScrolledWindow" id="tags_scrollable">
+                                <property name="child">
+                                  <object class="GtkBox" id="tags_box">
+                                    <property name="orientation">horizontal</property>
+                                  </object>
+                                </property>
+                              </object>
                             </child>
 
                           </object>

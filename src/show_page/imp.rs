@@ -10,7 +10,7 @@ use crate::show_object::ShowObject;
 use crate::episode_object::EpisodeObject;
 
 #[derive(Debug, CompositeTemplate, Default)]
-#[template(resource = "/io/github/ronajo/resources/ronajo-show-page.ui")]
+#[template(file = "src/resources/show-page.blp")]
 pub struct RonajoShowPage {
     #[template_child]
     pub image: TemplateChild<gtk::Image>,

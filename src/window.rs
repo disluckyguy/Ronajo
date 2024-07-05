@@ -20,6 +20,7 @@
 use crate::show_data;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+use gst::prelude::*;
 use adw::{gio, glib};
 use std::cell;
 use std::vec;
@@ -28,13 +29,14 @@ use crate::show_card::RonajoShowCard;
 use crate::show_page::RonajoShowPage;
 use crate::video_page::RonajoVideoPage;
 use std::fs;
+use std::ops::{Add, Sub};
 
 
 mod imp {
     use super::*;
 
     #[derive(Debug, Default, gtk::CompositeTemplate)]
-    #[template(resource = "/io/github/ronajo/resources/ronajo-window.ui")]
+    #[template(file = "src/resources/window.blp")]
     pub struct RonajoWindow {
         // Template widgets
 
@@ -42,22 +44,22 @@ mod imp {
         pub navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
         pub show_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub shows_scrollable: TemplateChild<gtk::ScrolledWindow>,
+        // #[template_child]
+        // pub shows_scrollable: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
         pub library_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub library_scrollable: TemplateChild<gtk::ScrolledWindow>,
+        // #[template_child]
+        // pub library_scrollable: TemplateChild<gtk::ScrolledWindow>,
 
         #[template_child]
-        pub empty_shows: TemplateChild<adw::StatusPage>,
+        pub empty_shows: TemplateChild<gtk::StackPage>,
         #[template_child]
-        pub empty_library: TemplateChild<adw::StatusPage>,
+        pub empty_library: TemplateChild<gtk::StackPage>,
 
-        #[template_child]
-        pub library_clamp: TemplateChild<adw::Clamp>,
-        #[template_child]
-        pub shows_clamp: TemplateChild<adw::Clamp>,
+        // #[template_child]
+        // pub library_clamp: TemplateChild<adw::Clamp>,
+        // #[template_child]
+        // pub shows_clamp: TemplateChild<adw::Clamp>,
 
         pub shows: cell::RefCell<Option<gio::ListStore>>,
         pub library_shows: cell::RefCell<Option<gio::ListStore>>,
@@ -148,13 +150,11 @@ impl RonajoWindow {
             if result.is_ok() {
                 let settings = gio::Settings::new("io.github.ronajo");
                 let file = result.expect("invalid result");
-                let mut path = String::new();
-
-                if settings.string("config-path") == "Home" {
-                    path = home::home_dir().expect("failed to get home dir").into_os_string().into_string().expect("failed to convert to string");
+                let path = if settings.string("config-path") == "Home" {
+                    home::home_dir().expect("failed to get home dir").into_os_string().into_string().expect("failed to convert to string")
                 } else {
-                    path = settings.string("config-path").to_string();
-                }
+                    settings.string("config-path").to_string()
+                };
 
                 let new_path = file.path().expect("failed to get file path").into_os_string().into_string().expect("failed to convert to string");
 
@@ -168,21 +168,160 @@ impl RonajoWindow {
     pub fn play_video(&self, _action: &gio::SimpleAction, param: Option<&adw::glib::Variant>) {
         let view = self.imp().navigation_view.get();
         let video_page = RonajoVideoPage::new();
-        let video = video_page.imp().video.get();
         let parameter = param
                 .expect("Could not get parameter.")
                 .get::<String>()
                 .expect("The variant needs to be of type `String`.");
 
-        let file = gio::File::for_uri(&parameter);
-
-        let media_file = gtk::MediaFile::for_file(&file);
-
-        video.set_media_stream(Some(&media_file));
+        video_page.playbin().set_property("url", parameter);
 
         view.push(&video_page);
 
 
+    }
+
+    pub fn toggle_fullscreen(&self) {
+        if !self.is_fullscreened() {
+            self.fullscreen();
+        } else {
+            self.unfullscreen();
+        }
+    }
+
+    pub fn toggle_pause(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            if video_page.paused() {
+                video_page.set_paused(false);
+            } else {
+                video_page.set_paused(true);
+            }
+        };
+
+    }
+
+    pub fn toggle_autohide(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            if video_page.autohide() {
+                video_page.set_autohide(false);
+            } else {
+                video_page.set_autohide(true);
+            }
+        };
+    }
+
+    pub fn toggle_mute(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            if video_page.mute() {
+                video_page.set_mute(false);
+            } else {
+                video_page.set_mute(true);
+            }
+        };
+    }
+
+    pub fn raise_volume(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let volume = video_page.volume();
+            let mut new_volume = volume + 10f64;
+            if new_volume > 100f64 {
+                new_volume = 100f64;
+            }
+            video_page.set_volume(new_volume);
+        };
+    }
+
+    pub fn lower_volume(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let volume = video_page.volume();
+            let mut new_volume = volume - 10f64;
+            if new_volume < 0f64 {
+                new_volume = 0f64;
+            }
+            video_page.set_volume(new_volume);
+        };
+    }
+
+    pub fn raise_rate(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let rate = video_page.rate();
+            let mut new_rate = rate + 0.25;
+            if new_rate > 2f64 {
+                new_rate = 2f64;
+            }
+            video_page.set_rate(new_rate);
+        };
+    }
+
+    pub fn lower_rate(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let rate = video_page.rate();
+            let mut new_rate = rate - 0.25;
+            if new_rate < 0.25 {
+            new_rate = 0.25;
+            }
+            video_page.set_rate(new_rate);
+        };
+    }
+
+    pub fn seek_forward(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let playbin = video_page.playbin();
+            if let Some(stream_time) = playbin.query_position::<gst::ClockTime>() {
+                let seek_time = gst::ClockTime::from_seconds(10).add(stream_time);
+                let duration = playbin.query_duration::<gst::ClockTime>().expect("failed to get duration");
+                if seek_time.seconds() > duration.seconds() {
+                    playbin.seek_simple(gst::SeekFlags::FLUSH, duration.sub(gst::ClockTime::from_seconds(1))).expect("failed to seek");
+                    return;
+                }
+                playbin.seek_simple(gst::SeekFlags::FLUSH, seek_time).expect("failed to seek");
+            };
+        };
+    }
+
+    pub fn seek_backward(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            let playbin = video_page.playbin();
+            if let Some(stream_time) = playbin.query_position::<gst::ClockTime>() {
+
+                let seek_time = stream_time.overflowing_sub(gst::ClockTime::from_seconds(10));
+
+                if seek_time.1 {
+                    playbin.seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(0)).expect("failed to seek");
+                    return;
+                }
+                playbin.seek_simple(gst::SeekFlags::FLUSH, seek_time.0).expect("failed to seek");
+            };
+        };
+    }
+
+    pub fn toggle_loop(&self) {
+        let view = self.imp().navigation_view.get();
+        let visible_page = view.visible_page().expect("failed to get page");
+        if let Some(video_page) = visible_page.downcast_ref::<RonajoVideoPage>() {
+            if video_page.loop_video() {
+                video_page.set_loop_video(false);
+            } else {
+                video_page.set_loop_video(true);
+            }
+        }
     }
 
     fn setup_gactions(&self) {
@@ -194,6 +333,58 @@ impl RonajoWindow {
             .activate(move |window: &Self, action, parameter| window.play_video(action, parameter))
             .build();
         self.add_action_entries([change_config_action, play_video_action]);
+
+        let toggle_fullscreen_action = gio::ActionEntry::builder("toggle-fullscreen")
+            .activate(move |window: &Self, _, _| window.toggle_fullscreen())
+            .build();
+        self.add_action_entries([toggle_fullscreen_action]);
+
+        let seek_forward_action = gio::ActionEntry::builder("seek-forward")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.seek_forward()))
+            .build();
+
+        let seek_backward_action = gio::ActionEntry::builder("seek-backward")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.seek_backward()))
+            .build();
+
+        let toggle_pause_action = gio::ActionEntry::builder("toggle-pause")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.toggle_pause()))
+            .build();
+
+        let toggle_autohide_action = gio::ActionEntry::builder("toggle-autohide")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.toggle_autohide()))
+            .build();
+
+        let toggle_loop_action = gio::ActionEntry::builder("toggle-loop")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.toggle_loop()))
+            .build();
+
+        let toggle_mute_action = gio::ActionEntry::builder("toggle-mute")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.toggle_mute()))
+            .build();
+
+        let raise_volume_action = gio::ActionEntry::builder("raise-volume")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.raise_volume()))
+            .build();
+
+        let lower_volume_action = gio::ActionEntry::builder("lower-volume")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.lower_volume()))
+            .build();
+
+        let raise_rate_action = gio::ActionEntry::builder("raise-rate")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.raise_rate()))
+            .build();
+
+        let lower_rate_action = gio::ActionEntry::builder("lower-rate")
+            .activate(glib::clone!(@weak self as window => move |_: &gio::SimpleActionGroup, _, _| window.lower_rate()))
+            .build();
+
+
+        let video_actions = gio::SimpleActionGroup::new();
+        video_actions.add_action_entries([seek_forward_action, seek_backward_action, toggle_loop_action, toggle_pause_action, toggle_autohide_action
+        , toggle_mute_action, raise_rate_action, lower_rate_action, raise_volume_action, lower_volume_action]);
+
+        self.insert_action_group("vid" ,Some(&video_actions));
     }
 
     pub fn shows(&self) -> gio::ListStore {
@@ -215,14 +406,14 @@ impl RonajoWindow {
         let selection_model = gtk::NoSelection::new(Some(self.shows()));
         imp.show_view.set_model(Some(&selection_model));
 
-        let empty_shows = self.imp().empty_shows.get();
-        let shows_clamp = self.imp().shows_clamp.get();
-        let shows_scrollable = self.imp().shows_scrollable.get();
-        if self.shows().n_items() == 0 {
-            shows_scrollable.set_child(Some(&empty_shows));
-        } else {
-            shows_scrollable.set_child(Some(&shows_clamp));
-        }
+        // let empty_shows = self.imp().empty_shows.get();
+        // let shows_clamp = self.imp().shows_clamp.get();
+        // let shows_scrollable = self.imp().shows_scrollable.get();
+        // if self.shows().n_items() == 0 {
+        //     shows_scrollable.set_child(Some(&empty_shows));
+        // } else {
+        //     shows_scrollable.set_child(Some(&shows_clamp));
+        // }
 
     }
 
@@ -234,28 +425,28 @@ impl RonajoWindow {
 
     pub fn setup_bindings(&self) {
 
-        let shows_scrollable = self.imp().shows_scrollable.get();
-        let library_scrollable = self.imp().library_scrollable.get();
-        let shows_clamp = self.imp().shows_clamp.get();
-        let library_clamp = self.imp().library_clamp.get();
-        let empty_shows = self.imp().empty_shows.get();
-        let empty_library = self.imp().empty_library.get();
+        // let shows_scrollable = self.imp().shows_scrollable.get();
+        // let library_scrollable = self.imp().library_scrollable.get();
+        // let shows_clamp = self.imp().shows_clamp.get();
+        // let library_clamp = self.imp().library_clamp.get();
+        // let empty_shows = self.imp().empty_shows.get();
+        // let empty_library = self.imp().empty_library.get();
 
-        self.shows().connect_items_changed(glib::clone!(@weak shows_clamp, @weak empty_shows, @weak shows_scrollable => move |shows,_,_,_| {
-            if shows.n_items() == 0 {
-                shows_scrollable.set_child(Some(&empty_shows));
-            } else {
-                shows_scrollable.set_child(Some(&shows_clamp));
-            }
-        }));
+        // self.shows().connect_items_changed(glib::clone!(@weak shows_clamp, @weak empty_shows, @weak shows_scrollable => move |shows,_,_,_| {
+        //     if shows.n_items() == 0 {
+        //         shows_scrollable.set_child(Some(&empty_shows));
+        //     } else {
+        //         shows_scrollable.set_child(Some(&shows_clamp));
+        //     }
+        // }));
 
-        self.library_shows().connect_items_changed(glib::clone!(@weak library_clamp, @weak empty_library, @weak library_scrollable => move |shows,_,_,_| {
-            if shows.n_items() == 0 {
-                library_scrollable.set_child(Some(&empty_library));
-            } else {
-                library_scrollable.set_child(Some(&library_clamp));
-            }
-        }));
+        // self.library_shows().connect_items_changed(glib::clone!(@weak library_clamp, @weak empty_library, @weak library_scrollable => move |shows,_,_,_| {
+        //     if shows.n_items() == 0 {
+        //         library_scrollable.set_child(Some(&empty_library));
+        //     } else {
+        //         library_scrollable.set_child(Some(&library_clamp));
+        //     }
+        // }));
 
     }
 
@@ -366,14 +557,14 @@ impl RonajoWindow {
         let selection_model = gtk::NoSelection::new(Some(self.library_shows()));
         imp.library_view.set_model(Some(&selection_model));
 
-        let empty_library = self.imp().empty_library.get();
-        let library_clamp = self.imp().library_clamp.get();
-        let library_scrollable = self.imp().library_scrollable.get();
-        if self.library_shows().n_items() == 0 {
-            library_scrollable.set_child(Some(&empty_library));
-        } else {
-            library_scrollable.set_child(Some(&library_clamp));
-        }
+        // let empty_library = self.imp().empty_library.get();
+        // let library_clamp = self.imp().library_clamp.get();
+        // let library_scrollable = self.imp().library_scrollable.get();
+        // if self.library_shows().n_items() == 0 {
+        //     library_scrollable.set_child(Some(&empty_library));
+        // } else {
+        //     library_scrollable.set_child(Some(&library_clamp));
+        // }
 
     }
 
@@ -472,5 +663,6 @@ impl RonajoWindow {
         self.imp().library_view.set_factory(Some(&factory));
     }
 }
+
 
 

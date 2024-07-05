@@ -1,0 +1,175 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoShowPage : Adw.NavigationPage {
+    tag: "show-page";
+    title: "Show Page";
+    Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar header_bar {
+        title-widget: Label title_label {
+          label: "unknown";
+        };
+      }
+
+
+    content: Adw.Clamp {
+    maximum-size: 1000;
+    ScrolledWindow {
+
+      Box {
+        orientation: vertical;
+        Box {
+          styles [
+            "card"
+          ]
+          hexpand: true;
+          orientation: horizontal;
+          Image image {
+              halign: start;
+              pixel-size: 200;
+              margin-top: 5;
+              margin-bottom: 5;
+              margin-start: 5;
+              margin-end: 5;
+          }
+          Box {
+            halign: start;
+            hexpand: true;
+            orientation: vertical;
+            ToggleButton add_to_lib_btn {
+              margin-top: 10;
+              halign: start;
+              icon-name: "heart-outline-thick-symbolic";
+            }
+
+            Box {
+              orientation: horizontal;
+              halign: start;
+              hexpand: true;
+              margin-top: 5;
+              margin-bottom: 5;
+              margin-start: 5;
+              margin-end: 5;
+              Label status_label{
+                halign: start;
+                label: "Unknown Status";
+              }
+
+              ScrolledWindow tags_scrollable {
+                  Box tags_box {
+                    orientation: horizontal;
+                }
+              }
+            }
+          }
+        }
+
+      Label {
+          margin-top: 7;
+          margin-bottom: 7;
+          margin-start: 7;
+          margin-end: 7;
+          halign: start;
+          label: "Background";
+          styles [
+            "heading"
+          ]
+        }
+        Label description_label {
+          margin-top: 7;
+          margin-bottom: 7;
+          margin-start: 7;
+          margin-end: 7;
+          ellipsize: end;
+          wrap: true;
+          max-width-chars: 200;
+          label: "Unknown Description";
+        }
+          ToggleButton expand_button {
+            styles [
+              "flat"
+            ]
+            icon-name: "down-symbolic";
+            }
+        Adw.PreferencesGroup {
+            title: "Settings";
+            Adw.ComboRow type_row {
+              title: "Type";
+              model: StringList {
+                strings ["sub", "dub"]
+              };
+            }
+            Adw.ExpanderRow {
+              title: "Secure Shell (SSH)";
+              [prefix]
+              Image {
+                icon-name: "remote-terminal-symbolic";
+              }
+              Adw.ComboRow device_row {
+                title: "Device";
+                model: StringList {
+                  strings ["test"]
+                };
+              }
+              Adw.SwitchRow connect_switch {
+                title: "connect";
+              }
+            }
+            Adw.SpinRow rating_row {
+              [prefix]
+              Image {
+                icon-name: "starred-symbolic";
+              }
+              title: "Rating";
+              climb-rate: 2;
+              digits: 1;
+              adjustment: Adjustment {
+                lower: 0;
+                upper: 10;
+                value: 0;
+                page-increment: 1;
+                step-increment: 0.1;
+              };
+            }
+          }
+          Label {
+            margin-top: 7;
+            margin-bottom: 7;
+            margin-start: 7;
+            margin-end: 7;
+            halign: start;
+            styles [
+              "heading"
+            ]
+
+
+          }
+          TextView notes_text {
+            styles [
+              "card"
+            ]
+            margin-top: 5;
+            margin-bottom: 5;
+            margin-start: 5;
+            margin-end: 5;
+            hexpand: true;
+            vexpand: true;
+            height-request: 200;
+        }
+        Label {
+          halign: start;
+          label: "Episodes";
+          styles [
+            "heading"
+          ]
+        }
+        ListView episode_view {
+
+        }
+      }
+    }
+    };
+
+  }
+}

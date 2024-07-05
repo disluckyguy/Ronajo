@@ -1,0 +1,30 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoPreferencesDialog : Adw.PreferencesDialog {
+    follows-content-size: true;
+
+    Adw.PreferencesPage {
+      icon-name: "settings-symbolic";
+      name: "general";
+      title: "General";
+      Adw.PreferencesGroup {
+          title: "General";
+          Adw.ActionRow change_config_row {
+            title: "Configs Location";
+            subtitle: "home";
+            activatable-widget: change_config_button;
+            [suffix]
+            Button change_config_button {
+              margin-top: 5;
+              margin-bottom: 5;
+              action-name: "win.change-config";
+              icon-name: "edit-symbolic";
+              styles [
+                "flat"
+              ]
+            }
+          }
+      }
+    }
+}

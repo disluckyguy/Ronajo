@@ -9,7 +9,7 @@
     <file preprocess="xml-stripblanks">resources/ronajo-video-page.ui</file>
     <file preprocess="xml-stripblanks">resources/ronajo-episode-row.ui</file>
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
-    <file>resources/ronajo-styles.css</file>
+    <file>resources/styles.css</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/remote-terminal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/settings-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/starred-symbolic.svg</file>
@@ -21,6 +21,21 @@
     <file preprocess="xml-stripblanks">icons/scalable/emblems/heart-outline-thick-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/down-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/up-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/media-playback-pause-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/media-playback-start-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/seek-forward-large-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/seek-backward-large-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/arrows-pointing-outward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/arrows-pointing-inward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/settings-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/padlock2-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/padlock2-open-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/audio-volume-low-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/audio-volume-medium-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/audio-volume-high-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/audio-volume-muted-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/playback-options-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/loop-arrow-symbolic.svg</file>
 
 
   </gresource>

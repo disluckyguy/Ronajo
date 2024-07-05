@@ -19,7 +19,7 @@ impl RonajoEpisodeRow {
             .build()
     }
 
-    pub fn bind(&self, object: &EpisodeObject) {
+    pub fn bind(&self, _object: &EpisodeObject) {
 
 
     }

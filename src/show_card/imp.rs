@@ -9,8 +9,7 @@ use crate::show_data::ShowData;
 // use glib::properties;
 
 #[derive(CompositeTemplate, Default)]
-// #[properties(wrapper_type = super::ShowCard)]
-#[template(resource = "/io/github/ronajo/resources/ronajo-show-card.ui")]
+#[template(file = "src/resources/show-card.blp")]
 pub struct RonajoShowCard {
     #[template_child]
     pub image: TemplateChild<gtk::Image>,
@@ -43,8 +42,6 @@ impl ObjectSubclass for RonajoShowCard {
 impl ObjectImpl for RonajoShowCard {
     fn constructed(&self) {
         self.parent_constructed();
-
-        let obj = self.obj();
     }
 }
 

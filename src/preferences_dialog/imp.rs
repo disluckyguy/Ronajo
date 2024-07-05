@@ -5,7 +5,7 @@ use gtk::CompositeTemplate;
 use gtk::TemplateChild;
 
 #[derive(CompositeTemplate, Default)]
-#[template(resource = "/io/github/ronajo/resources/ronajo-preferences-dialog.ui")]
+#[template(file = "src/resources/preferences-dialog.blp")]
 pub struct RonajoPreferencesDialog {
     #[template_child]
     change_config_row: TemplateChild<adw::ActionRow>,
