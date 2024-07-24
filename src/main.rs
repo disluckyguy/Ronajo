@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+mod core;
 mod application;
 mod config;
 mod window;
@@ -25,7 +26,6 @@ mod show_object;
 mod show_card;
 mod preferences_dialog;
 mod show_page;
-mod show_data;
 mod episode_row;
 mod episode_object;
 mod video_page;
@@ -33,11 +33,21 @@ mod tools;
 
 use self::application::RonajoApplication;
 use self::window::RonajoWindow;
+use std::sync::OnceLock;
+use tokio::runtime::Runtime;
 
 use config::{GETTEXT_PACKAGE, LOCALEDIR, PKGDATADIR};
 use gettextrs::{bind_textdomain_codeset, bindtextdomain, textdomain};
 use gtk::{gio, glib};
 use gtk::prelude::*;
+
+pub fn runtime() -> &'static Runtime {
+    static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+    RUNTIME.get_or_init(|| {
+        Runtime::new().expect("Setting up tokio runtime needs to succeed.")
+    })
+}
+
 
 fn main() -> glib::ExitCode {
     // Set up gettext translations
@@ -45,6 +55,9 @@ fn main() -> glib::ExitCode {
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
         .expect("Unable to set the text domain encoding");
     textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
+
+    gst::init().unwrap();
+    gstgtk4::plugin_register_static().expect("Failed to register gstgtk4 plugin");
 
     // Load resources
     let resources = gio::Resource::load(PKGDATADIR.to_owned() + "/ronajo.gresource")
@@ -60,6 +73,12 @@ fn main() -> glib::ExitCode {
     // exits. Upon return, we have our exit code to return to the shell. (This
     // is the code you see when you do `echo $?` after running a command in a
     // terminal.
-    app.run()
+    let res = app.run();
+
+    unsafe {
+        gst::deinit();
+    }
+
+    res
 }
 

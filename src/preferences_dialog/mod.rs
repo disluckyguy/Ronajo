@@ -1,10 +1,9 @@
 mod imp;
 
+use adw::glib;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{gio, glib};
 use glib::Object;
-
 
 glib::wrapper! {
     pub struct RonajoPreferencesDialog(ObjectSubclass<imp::RonajoPreferencesDialog>)
@@ -14,8 +13,6 @@ glib::wrapper! {
 
 impl RonajoPreferencesDialog {
     pub fn new() -> Self {
-        Object::builder()
-            .build()
+        Object::builder().build()
     }
 }
-

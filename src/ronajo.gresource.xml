@@ -2,14 +2,8 @@
 <gresources>
   <gresource prefix="/io/github/ronajo">
 
-    <file preprocess="xml-stripblanks">resources/ronajo-window.ui</file>
-    <file preprocess="xml-stripblanks">resources/ronajo-show-card.ui</file>
-    <file preprocess="xml-stripblanks">resources/ronajo-show-page.ui</file>
-    <file preprocess="xml-stripblanks">resources/ronajo-preferences-dialog.ui</file>
-    <file preprocess="xml-stripblanks">resources/ronajo-video-page.ui</file>
-    <file preprocess="xml-stripblanks">resources/ronajo-episode-row.ui</file>
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
-    <file>resources/styles.css</file>
+    <file>gtk/styles.css</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/remote-terminal-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/settings-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/emblems/starred-symbolic.svg</file>
@@ -36,6 +30,8 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/audio-volume-muted-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/playback-options-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/loop-arrow-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/loupe-large-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/plus-symbolic.svg</file>
 
 
   </gresource>

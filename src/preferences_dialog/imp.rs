@@ -5,13 +5,12 @@ use gtk::CompositeTemplate;
 use gtk::TemplateChild;
 
 #[derive(CompositeTemplate, Default)]
-#[template(file = "src/resources/preferences-dialog.blp")]
+#[template(file = "src/gtk/preferences-dialog.blp")]
 pub struct RonajoPreferencesDialog {
     #[template_child]
     change_config_row: TemplateChild<adw::ActionRow>,
     #[template_child]
     change_config_button: TemplateChild<gtk::Button>,
-
 }
 
 #[glib::object_subclass]
@@ -25,7 +24,7 @@ impl ObjectSubclass for RonajoPreferencesDialog {
     }
 
     fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
-       obj.init_template();
+        obj.init_template();
     }
 }
 
@@ -40,7 +39,8 @@ impl ObjectImpl for RonajoPreferencesDialog {
 
         let config_row = obj.imp().change_config_row.get();
 
-        settings.bind("config-path", &config_row, "subtitle")
+        settings
+            .bind("config-path", &config_row, "subtitle")
             .build();
     }
 }

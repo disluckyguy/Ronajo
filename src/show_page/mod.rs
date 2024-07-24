@@ -1,16 +1,15 @@
 mod imp;
 
+use crate::core::show_data::*;
+use crate::core::config::*;
+use crate::episode_object::EpisodeObject;
+use crate::episode_row::RonajoEpisodeRow;
+use crate::runtime;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{gio, glib};
+use adw::{gdk, gio, glib};
 use glib::Object;
-use std::cell;
-use std::vec;
 use gtk::pango;
-use crate::episode_row::RonajoEpisodeRow;
-use crate::show_object::ShowObject;
-use crate::episode_object::EpisodeObject;
-use crate::show_data::EpisodeData;
 
 glib::wrapper! {
     pub struct RonajoShowPage(ObjectSubclass<imp::RonajoShowPage>)
@@ -20,94 +19,250 @@ glib::wrapper! {
 
 impl RonajoShowPage {
     pub fn new() -> Self {
-        Object::builder()
-            .build()
+        Object::builder().build()
     }
 
-    pub fn bind(&self, object: &ShowObject) {
-        self.unbind();
+    pub fn data(&self) -> ShowData {
+        self
+            .imp()
+            .data
+            .borrow()
+            .clone()
+            .expect("failed to get data")
+    }
+
+
+    pub fn bind_show_data(&self, data: &ShowData) {
+        self.imp().data.replace(Some(data.clone()));
+
         let title_label = self.imp().title_label.get();
+        let rating_label = self.imp().rating_label.get();
+        let rating_row = self.imp().rating_row.get();
+        // let translation_row = self.imp().translation_row.get();
+        let studio_label = self.imp().studio_label.get();
         let image = self.imp().image.get();
         let description_label = self.imp().description_label.get();
+        let notes_text = self.imp().notes_text.get();
         let status_label = self.imp().status_label.get();
-        let rating_row = self.imp().rating_row.get();
-        let library_button = self.imp().add_to_lib_btn.get();
+        let favourite_button = self.imp().favourite_button.get();
 
-        let mut bindings = self.imp().bindings.borrow_mut();
-
-        let title_binding = object.bind_property("name", &title_label, "label")
-            .sync_create()
-            .build();
-
-        bindings.push(title_binding);
-
-        let image_binding = object.bind_property("image", &image, "file")
-            .sync_create()
-            .build();
-
-        bindings.push(image_binding);
-
-        let description_binding = object.bind_property("description", &description_label, "label")
-            .sync_create()
-            .build();
-
-        bindings.push(description_binding);
-
-        let status_binding = object.bind_property("airing", &status_label, "label")
-            .sync_create()
-            .transform_to(|_, airing| {
-                let label = if airing {
-                    "Airing".to_string()
-                } else {
-                    "Finsihed Airing".to_string()
-                };
-                Some(label.to_value())
-            })
-            .build();
-
-        bindings.push(status_binding);
+        self.set_allanime_id(data.allanime_id.clone());
 
 
-        let rating_binding = object.bind_property("rating", &rating_row, "value")
-            .sync_create()
-            .build();
+        favourite_button.set_active(data.in_library);
+        if let Some(synopsis) = data.synopsis.as_ref() {
+            self.imp().synopsis_title.set_visible(true);
+            description_label.set_visible(true);
+            self.imp().expand_button.set_visible(true);
 
-        bindings.push(rating_binding);
+            description_label.set_label(synopsis);
+        } else {
+            self.imp().synopsis_title.set_visible(false);
+            description_label.set_visible(false);
+            self.imp().expand_button.set_visible(false);
+        };
 
-        let in_library_binding = object.bind_property("in-library", &library_button, "active")
-            .bidirectional()
-            .sync_create()
-            .build();
+        rating_label.set_label(&data.rating);
 
-        bindings.push(in_library_binding);
+        let rating_words = &data.rating.split_whitespace().collect::<Vec<&str>>();
+
+        if rating_words[0] == "G" || rating_words[0] == "PG" {
+            rating_label.add_css_class("success");
+        } else if rating_words[0] == "PG-13" || rating_words[0] == "R" {
+            rating_label.add_css_class("warning");
+        } else if rating_words[0] == "PG-13" || rating_words[0] == "R" {
+            rating_label.add_css_class("error");
+        }
+
+        if let Some(title) = data.title_english.as_ref() {
+            self.set_title(title);
+            title_label.set_label(title);
+        } else {
+            self.set_title(&data.title);
+            title_label.set_label(&data.title);
+        }
+
+        favourite_button.connect_toggled(glib::clone!(
+            #[strong(rename_to = data)]
+            self.data(),
+            move |button| {
+
+            if button.is_active() {
+                let _ = add_to_library(&data);
+            } else {
+                let _ = remove_from_library(data.mal_id);
+            }
+        }));
+
+
+        studio_label.set_label(&data.studios.join(", "));
+
+        status_label.set_label(&data.status);
+
+        let (sender, receiver) = async_channel::bounded(1);
+        runtime().spawn(glib::clone!(
+            #[strong]
+            sender,
+            #[strong(rename_to = image)]
+            data.image,
+            async move {
+                let response = reqwest::get(image)
+                    .await
+                    .expect("failed to get image")
+                    .bytes()
+                    .await
+                    .expect("failed to convert to bytes");
+
+                let bytes: Vec<u8> = response.to_vec();
+
+                let gbytes = glib::Bytes::from(bytes.as_slice());
+                sender.send(gbytes).await.expect("thread must be open");
+            }
+        ));
+        glib::spawn_future_local(glib::clone!(
+            #[weak]
+            image,
+            async move {
+                while let Ok(data) = receiver.recv().await {
+                    let texture = gdk::Texture::from_bytes(&data).expect("failed to make texture");
+                    image.set_paintable(Some(&texture));
+                }
+            }
+        ));
+        if let Some(episodes) = self.imp().episodes.borrow().clone() {
+            episodes.remove_all();
+        }
+
+        println!("{}", data.sub_episodes);
+        for i in 1..data.sub_episodes + 1 {
+            self.new_episode(i, "sub");
+
+        }
+
+        if let Some(text) = get_note(data.mal_id) {
+            notes_text.buffer().set_text(&text);
+        }
+
+        if let Some(rating) = get_rating(data.mal_id) {
+            rating_row.adjustment().set_value(rating);
+        }
+
+        self.setup_callbacks();
 
         self.imp().expand_button.set_active(false);
     }
 
+    pub fn setup_callbacks(&self) {
+        let imp = self.imp();
+        imp.notes_text.buffer().connect_changed(glib::clone!(
+        #[strong(rename_to = id)]
+        self.data().mal_id,
+        move |buffer| {
+
+            let bounds = buffer.bounds();
+            let text = buffer.text(&bounds.0, &bounds.1, true);
+
+            if text.is_empty() {
+                let _ = remove_note(id);
+            } else {
+                let _ = save_note(id, &text);
+            }
+        }));
+
+        imp.rating_row.adjustment().connect_value_notify(glib::clone!(
+        #[strong(rename_to = id)]
+        self.data().mal_id,
+        move |adjustment| {
+
+            let value = adjustment.value();
+
+            if value == 0f64 {
+                let _ = remove_rating(id);
+            } else {
+                let _ = save_rating(id, value);
+            }
+        }));
+
+        imp.translation_row.connect_selected_item_notify(glib::clone!(
+            #[weak(rename_to = page)]
+            self,
+            move |translation_row| {
+                let item = translation_row.selected_item().expect("failed to get item");
+                let string_object = item
+                    .downcast_ref::<gtk::StringObject>()
+                    .expect("object must be string object");
+                let translation = string_object.string();
+
+                match translation.as_str() {
+                    "Sub" => {
+                        page.episodes().remove_all();
+                        for i in 0..page.data().sub_episodes {
+                            page.new_episode(i, "sub");
+                        }
+                    }
+                    "Dub" => {
+                        page.episodes().remove_all();
+                        for i in 0..page.data().dub_episodes {
+                            page.new_episode(i, "dub");
+                        }
+                    }
+                    _ => unreachable!()
+
+                }
+            }
+        ));
+    }
+
+
+    pub fn bind(&self, data: &JikanData) {
+
+        let (sender, receiver) = async_channel::bounded(1);
+
+            runtime().spawn(glib::clone!(
+                #[strong]
+                sender,
+                #[strong]
+                data,
+                async move {
+                    sender.send(None)
+                        .await
+                        .expect("thread must be open");
+                    let show_data = ShowData::from_jikan_data(data).await;
+                    sender.send(Some(show_data))
+                        .await
+                        .expect("thread must be open")
+                }
+            ));
+
+            glib::spawn_future_local(glib::clone!(
+                #[weak(rename_to = page)]
+                self,
+                async move {
+                    while let Ok(data) = receiver.recv().await {
+                        if let Some(data) = data {
+                            page.bind_show_data(&data);
+                            page.imp().page_stack.set_visible_child_name("main");
+                        } else {
+                            page.imp().page_stack.set_visible_child_name("spinner");
+                        }
+                    }
+                }
+            ));
+    }
+
     pub fn unbind(&self) {
-        for binding in self.imp().bindings.borrow_mut().drain(..) {
-            binding.unbind();
-        }
     }
 
     pub fn episodes(&self) -> gio::ListStore {
-        self
-            .imp()
+        self.imp()
             .episodes
             .borrow()
             .clone()
             .expect("failed to get episodes")
     }
 
-    pub fn new_episode(&self) {
-        let data = EpisodeData {
-            number: 0,
-            stream_url: String::new(),
-        };
-        let episode = EpisodeObject::new(data);
-
-
-
+    pub fn new_episode(&self, number: u32, translation: &str) {
+        let episode = EpisodeObject::new(number, self.allanime_id(), translation);
 
         self.episodes().append(&episode);
     }
@@ -125,8 +280,7 @@ impl RonajoShowPage {
     pub fn setup_factory(&self) {
         let factory = gtk::SignalListItemFactory::new();
 
-
-        factory.connect_setup(move |_, list_item|{
+        factory.connect_setup(move |_, list_item| {
             let episode_row = RonajoEpisodeRow::new();
 
             list_item
@@ -153,16 +307,48 @@ impl RonajoShowPage {
 
             episode_row.bind(&episode_object);
 
-            episode_row.connect_clicked(glib::clone!(@weak episode_row => move |_| {
-                let parameter = String::from("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-                episode_row.activate_action("win.play-video", Some(&parameter.to_variant()))
+            episode_row.connect_clicked(glib::clone!(
+            #[weak]
+            episode_row,
+            #[weak]
+            episode_object,
+            move |_| {
+                    let id = episode_object.allanime_id().expect("failed to get id");
+                    let translation = episode_object.translation();
+                    let number = episode_object.number();
+
+                    let (sender, receiver) = async_channel::bounded(1);
+                    runtime().spawn(glib::clone!(
+            #[strong]
+            sender,
+            #[strong]
+            id,
+            #[strong]
+            translation,
+            #[strong]
+            number,
+            async move {
+
+                let data = api_get_episode(id, translation, number).await.expect("failed to search");
+                sender.send(data).await.expect("thread must be open");
+            }
+        ));
+        glib::spawn_future_local(glib::clone!(
+            #[weak]
+            episode_row,
+            async move {
+                while let Ok(data) = receiver.recv().await {
+                    episode_row.activate_action("win.play-video", Some(&data.to_variant()))
                             .expect("The action does not exist.");
+                }
+            }
+        ));
+
             }));
 
         });
 
         factory.connect_unbind(move |_, listitem| {
-
             let episode_row = listitem
                 .downcast_ref::<gtk::ListItem>()
                 .expect("item must be ListItem")
@@ -171,17 +357,16 @@ impl RonajoShowPage {
                 .expect("item must be EpisodeRow");
 
             episode_row.unbind();
-
         });
 
         self.imp().episode_view.set_factory(Some(&factory));
     }
 
     pub fn setup_bindings(&self) {
-
         let imp = self.imp();
 
-        imp.expand_button.bind_property("active",&imp.description_label.get(), "ellipsize")
+        imp.expand_button
+            .bind_property("active", &imp.description_label.get(), "ellipsize")
             .transform_to(|_, active: bool| {
                 let mut ellipsize_mode = pango::EllipsizeMode::End;
 
@@ -194,25 +379,13 @@ impl RonajoShowPage {
             .sync_create()
             .build();
 
-        imp.expand_button.bind_property("active",&imp.description_label.get(), "ellipsize")
-            .transform_to(|_, active: bool| {
-                let mut ellipsize_mode = pango::EllipsizeMode::End;
-
-                if active {
-                    ellipsize_mode = pango::EllipsizeMode::None;
-                }
-
-                Some(ellipsize_mode)
-            })
-            .sync_create()
-            .build();
-
-        imp.expand_button.bind_property("active",&imp.expand_button.get(), "icon-name")
+        imp.expand_button
+            .bind_property("active", &imp.expand_button.get(), "label")
             .transform_to(|_, active: bool| {
                 let icon_name = if active {
-                    String::from("up-symbolic")
+                    String::from("Show Less")
                 } else {
-                    String::from("down-symbolic")
+                    String::from("Show More")
                 };
 
                 Some(icon_name)
@@ -220,7 +393,8 @@ impl RonajoShowPage {
             .sync_create()
             .build();
 
-        imp.add_to_lib_btn.bind_property("active",&imp.add_to_lib_btn.get(), "icon-name")
+        imp.favourite_button
+            .bind_property("active", &imp.favourite_button.get(), "icon-name")
             .transform_to(|_, active: bool| {
                 let icon_name = if active {
                     String::from("heart-filled-symbolic")
@@ -232,6 +406,6 @@ impl RonajoShowPage {
             })
             .sync_create()
             .build();
-
     }
 }
+

@@ -1,11 +1,10 @@
 mod imp;
 
+use crate::episode_object::EpisodeObject;
+use adw::glib;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{gio, glib};
 use glib::Object;
-use crate::episode_object::EpisodeObject;
-use std::vec;
 
 glib::wrapper! {
     pub struct RonajoEpisodeRow(ObjectSubclass<imp::RonajoEpisodeRow>)
@@ -15,11 +14,22 @@ glib::wrapper! {
 
 impl RonajoEpisodeRow {
     pub fn new() -> Self {
-        Object::builder()
-            .build()
+        Object::builder().build()
     }
 
-    pub fn bind(&self, _object: &EpisodeObject) {
+    pub fn bind(&self, object: &EpisodeObject) {
+
+        let mut bindings = Vec::new();
+        let name_binding = object.bind_property("number", self, "label")
+            .transform_to(move |_, number: u32| {
+                Some(format!("Episode {}", number))
+            })
+            .sync_create()
+            .build();
+
+        bindings.push(name_binding);
+
+        self.imp().bindings.replace(bindings);
 
 
     }
@@ -30,4 +40,3 @@ impl RonajoEpisodeRow {
         }
     }
 }
-

@@ -1,0 +1,42 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoShowCard : Box {
+
+  orientation: vertical;
+  halign: center;
+  valign: center;
+  Adw.Clamp {
+    maximum-size: 200;
+    unit: px;
+    Button show_button {
+      name: "show_button";
+      overflow: hidden;
+      Box {
+        orientation: vertical;
+
+
+        Picture picture {
+          width-request: 170;
+          height-request: 250;
+          hexpand: true;
+          vexpand: true;
+        }
+
+        Label title_label {
+          styles [
+            "heading"
+          ]
+          margin-top: 5;
+          margin-bottom: 5;
+          margin-start: 10;
+          margin-end: 10;
+          ellipsize: end;
+        }
+      }
+      styles [
+        "card"
+      ]
+   }
+  }
+}

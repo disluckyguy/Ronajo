@@ -1,0 +1,235 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoShowPage : Adw.NavigationPage {
+    tag: "show-page";
+    title: "Show Page";
+    Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar header_bar {
+
+      }
+
+
+    content: Stack page_stack {
+      StackPage {
+        name: "main";
+        child: ScrolledWindow {
+          Adw.Clamp {
+            maximum-size: 1000;
+
+
+          Box {
+            orientation: vertical;
+            Box {
+              styles [
+                "card"
+              ]
+              hexpand: true;
+              orientation: horizontal;
+              Image image {
+                  halign: start;
+                  pixel-size: 200;
+                  margin-top: 5;
+                  margin-bottom: 5;
+                  margin-start: 5;
+                  margin-end: 5;
+              }
+              Box {
+                halign: start;
+                hexpand: true;
+                orientation: vertical;
+                ToggleButton favourite_button {
+                  margin-top: 10;
+                  halign: start;
+                  icon-name: "heart-outline-thick-symbolic";
+                  styles [
+                    "accent"
+                  ]
+                }
+
+              Box {
+                  orientation: vertical;
+                  halign: start;
+                  hexpand: true;
+                  margin-top: 5;
+                  margin-bottom: 5;
+                  margin-start: 5;
+                  margin-end: 5;
+                  spacing: 5;
+
+                  Label rating_label {
+                    halign: start;
+                    hexpand: true;
+                    label: "Unknown";
+                    styles [
+                      "caption-heading"
+                    ]
+                  }
+
+                  Label title_label {
+                    halign: start;
+                    hexpand: true;
+                    label: "Unknown";
+                    wrap: true;
+                    styles [
+                      "title-2"
+                    ]
+                  }
+
+                  Label studio_label {
+                    hexpand: true;
+                    halign: start;
+                    label: "Unknown studio";
+                    styles [
+                      "caption-heading"
+                      ]
+                  }
+                  Label status_label{
+                    hexpand: true;
+                    halign: start;
+                    label: "Unknown Status";
+                    styles [
+                      "caption"
+                    ]
+                  }
+
+                  ScrolledWindow tags_scrollable {
+                      Box tags_box {
+                        orientation: horizontal;
+                    }
+                  }
+                }
+              }
+            }
+
+          Label synopsis_title {
+              margin-top: 7;
+              margin-bottom: 7;
+              margin-start: 7;
+              margin-end: 7;
+              halign: start;
+              label: "Synopsis";
+              styles [
+                "heading"
+              ]
+            }
+            Label description_label {
+              margin-top: 7;
+              margin-bottom: 7;
+              margin-start: 7;
+              margin-end: 7;
+              ellipsize: end;
+              wrap: true;
+              max-width-chars: 200;
+              label: "Unknown Description";
+            }
+              ToggleButton expand_button {
+                styles [
+                  "pill"
+                ]
+                label: "Show More";
+                halign: center;
+                valign: center;
+              }
+              Adw.PreferencesGroup {
+                title: "Settings";
+                Adw.ComboRow translation_row {
+                  title: "Type";
+                  model: StringList {
+                    strings ["Sub", "Dub"]
+                  };
+                }
+                Adw.ExpanderRow {
+                  title: "Remote Play";
+                  show-enable-switch: true;
+                  Adw.ComboRow device_row {
+                    title: "Device";
+                    model: StringList {
+                    };
+                  }
+                  Adw.ButtonRow {
+                    start-icon-name: "plus-symbolic";
+                    title: "Add Device…";
+                  }
+                }
+                Adw.SpinRow rating_row {
+                  title: "Rating";
+                  climb-rate: 2;
+                  digits: 1;
+                  adjustment: Adjustment {
+                    lower: 0;
+                    upper: 10;
+                    value: 0;
+                    page-increment: 1;
+                    step-increment: 0.1;
+                  };
+                }
+              }
+              Label {
+                margin-top: 7;
+                margin-bottom: 7;
+                margin-start: 7;
+                margin-end: 7;
+                halign: start;
+                label: "Notes";
+                styles [
+                  "heading"
+                ]
+
+              }
+              TextView notes_text {
+                styles [
+                  "card"
+                ]
+                margin-top: 5;
+                margin-bottom: 5;
+                margin-start: 5;
+                margin-end: 5;
+                top-margin: 5;
+                left-margin: 5;
+                right-margin: 5;
+                bottom-margin: 5;
+                hexpand: true;
+                vexpand: true;
+                height-request: 200;
+            }
+
+            Label {
+              margin-top: 5;
+              margin-bottom: 5;
+              margin-start: 5;
+              margin-end: 5;
+              halign: start;
+              label: "Episodes";
+              styles [
+                "heading"
+              ]
+            }
+            ListView episode_view {
+              styles [
+                "transparent_bg",
+                "card"
+              ]
+              overflow: hidden;
+              show-separators: true;
+            }
+          }
+        }
+        };
+
+        }
+        StackPage {
+          name: "spinner";
+          child: Adw.Spinner {
+              width-request: 48;
+              height-request: 48;
+              halign: center;
+              valign: center;
+          };
+      }
+    };
+
+
+  }
+}

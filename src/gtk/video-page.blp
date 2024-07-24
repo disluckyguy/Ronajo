@@ -3,7 +3,8 @@ using Adw 1;
 
 
 template $RonajoVideoPage: Adw.NavigationPage {
-  content: Adw.ToolbarView toolbar_view {
+  title: "Video";
+  Adw.ToolbarView toolbar_view {
     content: Overlay video_overlay {
       Picture picture {
       }
@@ -236,7 +237,7 @@ template $RonajoVideoPage: Adw.NavigationPage {
         }
       }
     };
-  };
+  }
 }
 
 Popover settings_menu {

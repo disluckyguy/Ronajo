@@ -1,20 +1,20 @@
 mod imp;
 
+use adw::glib;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{gio, glib};
 use glib::Object;
-use crate::show_data::EpisodeData;
 
 glib::wrapper! {
     pub struct EpisodeObject(ObjectSubclass<imp::EpisodeObject>);
 }
 
 impl EpisodeObject {
-    pub fn new(data: EpisodeData) -> Self {
+    pub fn new(number: u32, allanime_id: Option<String>, translation: &str) -> Self {
         Object::builder()
-            .property("number", data.number)
-            .property("stream-url", data.stream_url)
+            .property("number", number)
+            .property("allanime-id", allanime_id)
+            .property("translation", translation)
             .build()
     }
 }

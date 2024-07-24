@@ -21,6 +21,13 @@ template $RonajoWindow: Adw.ApplicationWindow {
       child: Adw.ToolbarView {
         [top]
         Adw.HeaderBar header_bar {
+          [start]
+          ToggleButton search_toggle{
+              icon-name: "loupe-large-symbolic";
+              active: bind shows_search_bar.search-mode-enabled bidirectional;
+          }
+
+
           title-widget: Adw.ViewSwitcher {
               stack: stack;
               policy: wide;
@@ -28,33 +35,59 @@ template $RonajoWindow: Adw.ApplicationWindow {
           [end]
           MenuButton {
             primary: true;
-            icon-name: "open-menu_symbolic";
+            icon-name: "open-menu-symbolic";
             tooltip-text: "Menu";
             menu-model: primary_menu;
           }
         }
+        [top]
+        SearchBar shows_search_bar {
+            key-capture-widget: shows_page;
+            Adw.Clamp {
+            maximum-size: 1000;
+              SearchEntry search_entry {
+                search-delay: 2000;
+              }
+            }
+        }
 
         content: Adw.ViewStack stack {
+          hexpand: true;
+          vexpand: true;
           Adw.ViewStackPage {
             title: "Anime";
             name: "anime";
             icon-name: "video-clip-symbolic";
             child: Stack show_stack {
               StackPage {
-                child: Adw.ClampScrollable show_page {
-                  maximum-size: 1500;
-                  ListView show_view {
-                  styles [
-                      "transparent-bg"
-                    ]
+                name: "show-page";
+                child: ScrolledWindow {
+                    Adw.Clamp{
+                      maximum-size: 1500;
+                      GridView show_view {
+                        styles [
+                        "transparent_bg"
+                        ]
+                      }
                   }
                 };
               }
 
               StackPage empty_shows {
+                name: "empty-shows";
                 child: Adw.StatusPage {
                   title: "No Shows Available";
                   icon-name: "video-clip-symbolic";
+                };
+              }
+
+              StackPage {
+                name: "spinner";
+                child: Adw.Spinner {
+                  width-request: 48;
+                  height-request: 48;
+                  halign: center;
+                  valign: center;
                 };
               }
             };
@@ -66,32 +99,45 @@ template $RonajoWindow: Adw.ApplicationWindow {
             icon-name: "library-symbolic";
             child: Stack library_stack {
               StackPage library_page{
-                child: Adw.ClampScrollable {
-                  maximum-size: 1500;
-                  ListView library_view {
-                  styles [
-                      "transparent-bg"
-                    ]
+                name: "library-page";
+                child: ScrolledWindow {
+                    Adw.Clamp{
+                      maximum-size: 1500;
+                      GridView library_view {
+                        styles [
+                          "transparent_bg"
+                        ]
+                      }
                   }
                 };
               }
 
               StackPage empty_library {
+                name: "empty-library";
                 child: Adw.StatusPage {
                   title: "No Saved Shows";
                   icon-name: "library-symbolic";
                 };
               }
+              StackPage {
+                name: "spinner";
+                child: Adw.Spinner {
+                  width-request: 48;
+                  height-request: 48;
+                  halign: center;
+                  valign: center;
+                };
+              }
             };
-          }
+            }
+          };
         };
 
         [bottom]
         Adw.ViewSwitcherBar switcher_bar{
           stack: stack;
         }
-      };
-    }
+      }
   };
 }
 

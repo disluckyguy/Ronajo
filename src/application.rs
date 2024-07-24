@@ -20,13 +20,12 @@
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{gio, glib};
-use gtk::CssProvider;
+use adw::{gdk, gio, glib};
 use std::fs;
 
 use crate::config::VERSION;
-use crate::RonajoWindow;
 use crate::preferences_dialog::RonajoPreferencesDialog;
+use crate::RonajoWindow;
 
 mod imp {
     use super::*;
@@ -47,6 +46,29 @@ mod imp {
             let obj = self.obj();
             obj.setup_gactions();
             obj.set_accels_for_action("app.quit", &["<primary>q"]);
+            obj.connect_startup(move |_| {
+                let provider = gtk::CssProvider::new();
+                provider.load_from_resource("/io/github/ronajo/gtk/styles.css");
+
+                // Add the provider to the default screen
+                gtk::style_context_add_provider_for_display(
+                    &gdk::Display::default().expect("Could not connect to a display."),
+                    &provider,
+                    gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+                );
+            });
+            obj.set_accels_for_action("app.quit", &["<primary>q"]);
+            obj.set_accels_for_action("win.toggle-fullscreen", &["F11"]);
+            obj.set_accels_for_action("vid.toggle-mute", &["<Ctrl>m"]);
+            obj.set_accels_for_action("vid.toggle-pause", &["<Ctrl>p", "<Ctrl>k"]);
+            obj.set_accels_for_action("vid.toggle-autohide", &["<Ctrl>h"]);
+            obj.set_accels_for_action("vid.toggle-loop", &["<Ctrl>l"]);
+            obj.set_accels_for_action("vid.raise-volume", &["<Ctrl>Up"]);
+            obj.set_accels_for_action("vid.lower-volume", &["<Ctrl>Down"]);
+            obj.set_accels_for_action("vid.seek-forward", &["<Ctrl>Right"]);
+            obj.set_accels_for_action("vid.seek-backward", &["<Ctrl>Left"]);
+            obj.set_accels_for_action("vid.raise-rate", &["<Alt>Right"]);
+            obj.set_accels_for_action("vid.lower-rate", &["<Alt>Left"]);
         }
     }
 
@@ -56,27 +78,9 @@ mod imp {
         // tries to launch a "second instance" of the application. When they try
         // to do that, we'll just present any existing window.
         fn activate(&self) {
-            let settings = gio::Settings::new("io.github.ronajo");
-            let path = if settings.string("config-path") == "Home" {
-                home::home_dir().expect("failed to get home dir").into_os_string().into_string().expect("failed to convert to string")
-            } else {
-                settings.string("config-path").to_string()
-            };
-
-            fs::create_dir(format!("{}/.ronajo", path)).expect("faield to create directory");
-            fs::create_dir(format!("{}/.ronajo/ratings", path)).expect("faield to create directory");
-            fs::create_dir(format!("{}/.ronajo/notes", path)).expect("faield to create directory");
-            fs::create_dir(format!("{}/.ronajo/devices", path)).expect("faield to create directory");
 
             let application = self.obj();
-            let provider = gtk::CssProvider::new();
-            provider.load_from_resource("/io/github/ronajo/resources/styles.css");
-
-            gtk::style_context_add_provider_for_display(
-                &gtk::gdk::Display::default().expect("Could not connect to a display."),
-                &provider,
-                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-            );
+            crate::core::config::setup_config();
             // Get the current window or create one if necessary
             let window = if let Some(window) = application.active_window() {
                 window
@@ -87,8 +91,17 @@ mod imp {
 
             // Ask the window manager/compositor to present the window
             window.present();
-        }
 
+
+
+            application.connect_shutdown(glib::clone!(
+                #[weak]
+                window,
+                move |_| {
+                    window.close();
+                }
+            ));
+        }
     }
 
     impl GtkApplicationImpl for RonajoApplication {}
@@ -124,8 +137,7 @@ impl RonajoApplication {
 
     fn show_about(&self) {
         let window = self.active_window().unwrap();
-        let about = adw::AboutWindow::builder()
-            .transient_for(&window)
+        let about = adw::AboutDialog::builder()
             .application_name("ronajo")
             .application_icon("io.github.ronajo")
             .developer_name("Mostafa")
@@ -134,13 +146,12 @@ impl RonajoApplication {
             .copyright("© 2024 Mostafa")
             .build();
 
-        about.present();
+        about.present(Some(&window));
     }
 
     fn show_preferences(&self) {
         let dialog = RonajoPreferencesDialog::new();
         let window = self.active_window().expect("failed to get window");
-        dialog.present(&window);
+        dialog.present(Some(&window));
     }
 }
-

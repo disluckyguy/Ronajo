@@ -1,22 +1,19 @@
-
 use std::cell::RefCell;
 
+use crate::core::show_data::JikanData;
 use glib::Properties;
 use gtk::glib;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use crate::show_data::ShowData;
 
 #[derive(Properties, Default)]
 #[properties(wrapper_type = super::ShowObject)]
 pub struct ShowObject {
-    #[property(name = "name", get, set, type = String, member = name)]
-    #[property(name = "description", get, set, type = String, member = description)]
-    #[property(name = "image", get, set, type = String, member = image)]
-    #[property(name = "airing", get, set, type = bool, member = airing)]
-    #[property(name = "rating", get, set, type = f32, member = rating)]
-    #[property(name = "in-library", get, set, type = bool, member = in_library)]
-    pub data: RefCell<ShowData>,
+    #[property(get, set)]
+    pub name: RefCell<String>,
+    #[property(get, set)]
+    pub image: RefCell<String>,
+    pub data: RefCell<Option<JikanData>>,
 }
 
 #[glib::object_subclass]
