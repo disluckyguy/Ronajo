@@ -40,38 +40,38 @@ template $RonajoWindow: Adw.ApplicationWindow {
             menu-model: primary_menu;
           }
         }
-        [top]
-        SearchBar shows_search_bar {
-            key-capture-widget: shows_page;
-            Adw.Clamp {
-            maximum-size: 1000;
-              SearchEntry search_entry {
-                search-delay: 2000;
-              }
-            }
-        }
 
-        content: Adw.ViewStack stack {
-          hexpand: true;
-          vexpand: true;
-          Adw.ViewStackPage {
-            title: "Anime";
-            name: "anime";
-            icon-name: "video-clip-symbolic";
-            child: Stack show_stack {
-              StackPage {
-                name: "show-page";
-                child: ScrolledWindow {
-                    Adw.Clamp{
-                      maximum-size: 1500;
-                      GridView show_view {
-                        styles [
-                        "transparent_bg"
-                        ]
-                      }
-                  }
-                };
+          [top]
+          SearchBar shows_search_bar {
+              key-capture-widget: shows_page;
+              Adw.Clamp {
+              maximum-size: 1000;
+                SearchEntry search_entry {
+                  search-delay: 2000;
+                }
               }
+          }
+          Adw.ViewStack stack {
+            hexpand: true;
+            vexpand: true;
+            Adw.ViewStackPage {
+              title: "Anime";
+              name: "anime";
+              icon-name: "video-clip-symbolic";
+              child: Stack show_stack {
+                StackPage {
+                  name: "show-page";
+                  child: ScrolledWindow {
+                      Adw.Clamp{
+                        maximum-size: 1500;
+                        GridView show_view {
+                          styles [
+                            "transparent_bg"
+                          ]
+                        }
+                    }
+                  };
+                }
 
               StackPage empty_shows {
                 name: "empty-shows";
@@ -130,13 +130,14 @@ template $RonajoWindow: Adw.ApplicationWindow {
               }
             };
             }
-          };
+          }
+        [bottom]
+          Adw.ViewSwitcherBar switcher_bar{
+            stack: stack;
+          }
         };
 
-        [bottom]
-        Adw.ViewSwitcherBar switcher_bar{
-          stack: stack;
-        }
+
       }
   };
 }
