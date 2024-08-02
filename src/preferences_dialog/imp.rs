@@ -3,6 +3,7 @@ use adw::subclass::prelude::*;
 use adw::{gio, glib};
 use gtk::CompositeTemplate;
 use gtk::TemplateChild;
+use std::cell::RefCell;
 
 #[derive(CompositeTemplate, Default)]
 #[template(file = "src/gtk/preferences-dialog.blp")]
@@ -11,6 +12,11 @@ pub struct RonajoPreferencesDialog {
     change_config_row: TemplateChild<adw::ActionRow>,
     #[template_child]
     change_config_button: TemplateChild<gtk::Button>,
+    #[template_child]
+    pub devices_list: TemplateChild<adw::PreferencesGroup>,
+    #[template_child]
+    pub add_device_button: TemplateChild<gtk::Button>,
+    pub device_rows: RefCell<Vec<adw::ActionRow>>
 }
 
 #[glib::object_subclass]
@@ -42,6 +48,7 @@ impl ObjectImpl for RonajoPreferencesDialog {
         settings
             .bind("config-path", &config_row, "subtitle")
             .build();
+
     }
 }
 

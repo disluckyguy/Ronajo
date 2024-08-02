@@ -61,6 +61,7 @@ template $RonajoShowPage : Adw.NavigationPage {
                   Label rating_label {
                     halign: start;
                     hexpand: true;
+                    wrap: true;
                     label: "Unknown";
                     styles [
                       "caption-heading"
@@ -94,10 +95,13 @@ template $RonajoShowPage : Adw.NavigationPage {
                     ]
                   }
 
-                  ScrolledWindow tags_scrollable {
-                      Box tags_box {
-                        orientation: horizontal;
-                    }
+                  FlowBox genres {
+                    hexpand: true;
+                    row-spacing: 5;
+                    column-spacing: 5;
+                    homogeneous: false;
+                    selection-mode: none;
+                    orientation: horizontal;
                   }
                 }
               }
@@ -140,17 +144,17 @@ template $RonajoShowPage : Adw.NavigationPage {
                     strings ["Sub", "Dub"]
                   };
                 }
-                Adw.ExpanderRow {
+                Adw.ExpanderRow remote_play_row {
                   title: "Remote Play";
                   show-enable-switch: true;
-                  Adw.ComboRow device_row {
+                  enable-expansion: false;
+                  Adw.ComboRow devices_row {
                     title: "Device";
-                    model: StringList {
-                    };
                   }
                   Adw.ButtonRow {
                     start-icon-name: "plus-symbolic";
                     title: "Add Device…";
+                    action-name: "app.devices-dialog";
                   }
                 }
                 Adw.SpinRow rating_row {
@@ -195,7 +199,7 @@ template $RonajoShowPage : Adw.NavigationPage {
                 height-request: 200;
             }
 
-            Label {
+            Label episode_title{
               margin-top: 5;
               margin-bottom: 5;
               margin-start: 5;

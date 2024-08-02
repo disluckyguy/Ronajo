@@ -21,10 +21,10 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{gdk, gio, glib};
-use std::fs;
 
 use crate::config::VERSION;
 use crate::preferences_dialog::RonajoPreferencesDialog;
+use crate::devices_dialog::DevicesDialog;
 use crate::RonajoWindow;
 
 mod imp {
@@ -129,10 +129,14 @@ impl RonajoApplication {
         let about_action = gio::ActionEntry::builder("about")
             .activate(move |app: &Self, _, _| app.show_about())
             .build();
+        let add_device_action = gio::ActionEntry::builder("devices-dialog")
+            .activate(move |app: &Self, _, _| app.devices_dialog())
+            .build();
+
         let preferences_action = gio::ActionEntry::builder("preferences")
             .activate(move |app: &Self, _, _| app.show_preferences())
             .build();
-        self.add_action_entries([quit_action, about_action, preferences_action]);
+        self.add_action_entries([quit_action, about_action, preferences_action, add_device_action]);
     }
 
     fn show_about(&self) {
@@ -151,6 +155,12 @@ impl RonajoApplication {
 
     fn show_preferences(&self) {
         let dialog = RonajoPreferencesDialog::new();
+        let window = self.active_window().expect("failed to get window");
+        dialog.present(Some(&window));
+    }
+
+    fn devices_dialog(&self) {
+        let dialog = DevicesDialog::new();
         let window = self.active_window().expect("failed to get window");
         dialog.present(Some(&window));
     }

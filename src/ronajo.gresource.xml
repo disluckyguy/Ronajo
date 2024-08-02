@@ -32,6 +32,9 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/loop-arrow-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/loupe-large-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/plus-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/left-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/computer-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/edit-delete-symbolic.svg</file>
 
 
   </gresource>

@@ -2,7 +2,9 @@ using Gtk 4.0;
 using Adw 1;
 
 template $RonajoPreferencesDialog : Adw.PreferencesDialog {
-    follows-content-size: true;
+    content-width: 220;
+    content-height: 250;
+    follows-content-size: false;
 
     Adw.PreferencesPage {
       icon-name: "settings-symbolic";
@@ -27,4 +29,20 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
           }
       }
     }
+
+  Adw.PreferencesPage {
+    icon-name: "computer-symbolic";
+    name: "devices";
+    title: "Devices";
+    Adw.PreferencesGroup devices_list {
+      title: "Devices";
+      header-suffix: Button {
+        icon-name: "plus-symbolic";
+        action-name: "app.add-device";
+        styles [
+          "flat"
+        ]
+      };
+    }
+  }
 }

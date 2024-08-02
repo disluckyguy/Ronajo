@@ -1,0 +1,241 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RonajoPlayerPage : Adw.NavigationPage {
+    tag: "player-page";
+    title: "Player Page";
+    Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar header_bar {
+        title-widget: Label title_label {
+          label: "unknown";
+        };
+      }
+    content: Stack stack {
+      StackPage {
+      name: "player";
+      child: Adw.Clamp {
+        maximum-size: 700;
+        CenterBox {
+          styles [
+              "card"
+            ]
+          orientation: vertical;
+          margin-top: 5;
+          margin-bottom: 5;
+          margin-start: 5;
+          margin-end: 5;
+          [center]
+          Box {
+            orientation: vertical;
+            valign: center;
+            hexpand: true;
+            spacing: 20;
+            Box {
+              margin-start: 10;
+              margin-end: 10;
+              margin-top: 10;
+              margin-bottom: 10;
+              orientation: horizontal;
+              halign: center;
+              spacing: 10;
+              Button seek_backward {
+                valign: center;
+                tooltip-text: "backwards 10 seconds";
+                // action-name: "vid.seek-backward";
+                Image backward_icon {
+                  margin-top: 10;
+                  margin-bottom: 10;
+                  margin-start: 10;
+                  margin-end: 10;
+                  icon-name: "seek-backward-large-symbolic";
+                  pixel-size: 60;
+                  styles [
+                    "accent"
+                  ]
+                }
+                styles [
+                  "circular"
+                ]
+              }
+              ToggleButton play_button {
+                valign: center;
+                tooltip-text: "Pause/Continue";
+                Image play_image {
+                  margin-top: 20;
+                  margin-bottom: 20;
+                  margin-start: 20;
+                  margin-end: 20;
+                  icon-name: "media-playback-pause-symbolic";
+                  pixel-size: 90;
+                  styles [
+                    "accent"
+                  ]
+                }
+                styles [
+                  "circular"
+                ]
+              }
+
+              Button seek_forward {
+                valign: center;
+                icon-name: "seek-forward-large-symbolic";
+                tooltip-text: "forwards 10 seconds";
+                // action-name: "vid.seek-forward";
+                Image forward_icon {
+                  margin-top: 10;
+                  margin-bottom: 10;
+                  margin-start: 10;
+                  margin-end: 10;
+                  icon-name: "seek-forward-large-symbolic";
+                  pixel-size: 60;
+                  styles [
+                    "accent"
+                  ]
+                }
+                styles [
+                "circular"
+                  ]
+                }
+
+              }
+              Box {
+                margin-start: 10;
+                margin-end: 10;
+                margin-top: 10;
+                margin-bottom: 10;
+                orientation: horizontal;
+                spacing: 5;
+                halign: center;
+                Label position_label {
+                  label: "-";
+                  styles [
+                    "title-2"
+                  ]
+                }
+                Separator {
+                    orientation: vertical;
+                }
+                Label duration_label {
+                  label: "-";
+                  styles [
+                    "title-2"
+                  ]
+                }
+              }
+              Scale video_scale {
+                orientation: horizontal;
+                hexpand: true;
+                margin-start: 10;
+                margin-end: 10;
+                styles [
+                  "accent"
+                ]
+                adjustment: Adjustment {
+                    upper: 100;
+                    value: 0;
+                    lower: 0;
+                };
+              }
+          }
+          [end]
+          Box {
+            orientation: vertical;
+            spacing: 5;
+            margin-bottom: 30;
+            homogeneous: true;
+            hexpand: true;
+            Box {
+                orientation: horizontal;
+                hexpand: true;
+                homogeneous: true;
+                styles [
+                  "toolbar"
+                ]
+                Button quit_button {
+                  hexpand: true;
+                  icon-name: "cross-small-circle-outline-symbolic";
+                }
+
+                Button screenshot_button {
+                  hexpand: true;
+                  icon-name: "screenshooter-symbolic";
+                }
+
+                Button window_button {
+                  hexpand: true;
+                  icon-name: "move-to-window-symbolic";
+                }
+              }
+
+            Box {
+              orientation: horizontal;
+              spacing: 10;
+              halign: center;
+
+              Box {
+                margin-start: 10;
+                margin-end: 10;
+                orientation: horizontal;
+                valign: center;
+                halign: center;
+                styles [
+                  "linked"
+                ]
+
+                ToggleButton mute_button {
+                  icon-name: "audio-volume-high-symbolic";
+                }
+                SpinButton volume_spin {
+                  adjustment: Adjustment {
+                    step-increment: 5;
+                    lower: 0;
+                    upper: 100;
+                    value: 0;
+                  };
+                }
+              }
+
+              Box {
+                margin-start: 10;
+                margin-end: 10;
+                orientation: horizontal;
+                valign: center;
+                halign: center;
+                styles [
+                  "linked"
+                ]
+                ToggleButton rate_button {
+                  sensitive: false;
+                  icon-name: "playback-options-symbolic";
+                }
+                SpinButton rate_spin {
+                  digits: 2;
+                  adjustment: Adjustment {
+                    lower: 0.25;
+                    step-increment: 0.25;
+                    upper: 2;
+                    value: 0;
+                  };
+                }
+              }
+            }
+
+          }
+
+          }
+        };
+      }
+      StackPage {
+        name: "spinner";
+        child: Adw.Spinner {
+            width-request: 48;
+            height-request: 48;
+            halign: center;
+            valign: center;
+        };
+    }
+    };
+
+  }
+}

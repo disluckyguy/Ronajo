@@ -7,7 +7,6 @@ use std::cell;
 use crate::core::show_data::ShowData;
 use glib::Properties;
 use std::cell::RefCell;
-use std::cell::Cell;
 
 #[derive(Debug, CompositeTemplate, Default, Properties)]
 #[properties(wrapper_type = super::RonajoShowPage)]
@@ -17,6 +16,8 @@ pub struct RonajoShowPage {
     pub page_stack: TemplateChild<gtk::Stack>,
     #[template_child]
     pub image: TemplateChild<gtk::Image>,
+    #[template_child]
+    pub genres: TemplateChild<gtk::FlowBox>,
     #[template_child]
     pub rating_label: TemplateChild<gtk::Label>,
     #[template_child]
@@ -40,7 +41,13 @@ pub struct RonajoShowPage {
     #[template_child]
     pub translation_row: TemplateChild<adw::ComboRow>,
     #[template_child]
+    pub episode_title: TemplateChild<gtk::Label>,
+    #[template_child]
     pub episode_view: TemplateChild<gtk::ListView>,
+    #[template_child]
+    pub devices_row: TemplateChild<adw::ComboRow>,
+    #[template_child]
+    pub remote_play_row: TemplateChild<adw::ExpanderRow>,
 
     #[property(get, set, nullable, construct)]
     allanime_id: RefCell<Option<String>>,

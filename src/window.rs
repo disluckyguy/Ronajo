@@ -18,12 +18,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 use crate::core::show_data::*;
+use crate::core::player_data::PlayerData;
 use crate::core::config::*;
 use crate::runtime;
 use crate::show_card::RonajoShowCard;
 use crate::show_object::ShowObject;
 use crate::show_page::RonajoShowPage;
 use crate::video_page::RonajoVideoPage;
+use crate::player_page::RonajoPlayerPage;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{gio, glib};
@@ -140,6 +142,61 @@ impl RonajoWindow {
 
 
         view.push(&video_page);
+    }
+
+    pub fn play_remote_video(&self, _action: &gio::SimpleAction, param: Option<&adw::glib::Variant>) {
+        let view = self.imp().navigation_view.get();
+        let parameter = param
+            .expect("Could not get parameter.")
+            .get::<String>()
+            .expect("The variant needs to be of type `String`.");
+
+        let value: serde_json::Value = serde_json::from_str(&parameter).expect("failed to parse");
+        let data: PlayerData = serde_json::from_value(value.get("data").unwrap().clone()).expect("failed to parse");
+        let url: String = serde_json::from_value(value.get("url").unwrap().clone()).expect("failed to parse");
+
+        if !data.use_key {
+            let entry = adw::PasswordEntryRow::builder()
+                .title("password")
+                .build();
+
+            let list_box = gtk::ListBox::builder()
+                .selection_mode(gtk::SelectionMode::None)
+                .css_classes(["boxed-list"])
+                .build();
+
+            list_box.append(&entry);
+
+            let alert_dialog = adw::AlertDialog::builder()
+                .heading("Device Password")
+                .body("Type the Device's Password to Use It")
+                .close_response("cancel")
+                .default_response("open")
+                .extra_child(&list_box)
+                .build();
+            alert_dialog.add_responses(&[("cancel", "Cancel"),("continue", "Continue")]);
+            alert_dialog.set_response_appearance("cancel", adw::ResponseAppearance::Destructive);
+            alert_dialog.set_response_appearance("continue", adw::ResponseAppearance::Suggested);
+            alert_dialog.connect_response(None, glib::clone!(
+            #[strong]
+            data,
+            #[strong]
+            url,
+            #[weak]
+            view,
+            #[weak]
+            entry,
+            move |_, response| {
+                if response == "continue" {
+                    let mut data = data.clone();
+                    data.password = Some(entry.text().to_string());
+                    let player_page = RonajoPlayerPage::new(&data, &url);
+                    view.push(&player_page);
+                }
+            }));
+            alert_dialog.present(Some(self));
+        }
+
     }
 
     pub fn toggle_fullscreen(&self) {
@@ -305,7 +362,12 @@ impl RonajoWindow {
             .parameter_type(Some(&String::static_variant_type()))
             .activate(move |window: &Self, action, parameter| window.play_video(action, parameter))
             .build();
-        self.add_action_entries([change_config_action, play_video_action]);
+
+        let play_remote_video_action = gio::ActionEntry::builder("play-remote-video")
+            .parameter_type(Some(&String::static_variant_type()))
+            .activate(move |window: &Self, action, parameter| window.play_remote_video(action, parameter))
+            .build();
+        self.add_action_entries([change_config_action, play_video_action, play_remote_video_action]);
 
         let toggle_fullscreen_action = gio::ActionEntry::builder("toggle-fullscreen")
             .activate(move |window: &Self, _, _| window.toggle_fullscreen())
@@ -691,3 +753,4 @@ impl RonajoWindow {
         self.imp().library_view.set_factory(Some(&factory));
     }
 }
+

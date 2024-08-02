@@ -1,9 +1,11 @@
 mod imp;
 
-use adw::glib;
+use adw::{gio, glib};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::Object;
+use crate::device_object::DeviceObject;
+use crate::core::config::*;
 
 glib::wrapper! {
     pub struct RonajoPreferencesDialog(ObjectSubclass<imp::RonajoPreferencesDialog>)
@@ -15,4 +17,8 @@ impl RonajoPreferencesDialog {
     pub fn new() -> Self {
         Object::builder().build()
     }
+
+    // pub fn setup_callbacks(&self) {
+
+    // }
 }

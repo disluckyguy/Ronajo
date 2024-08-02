@@ -1,0 +1,173 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DevicesDialog: Adw.Dialog {
+  follows-content-size: true;
+  width-request: 320;
+  height-request: 290;
+  Adw.NavigationView navigation_view {
+    Adw.NavigationPage {
+      title: "Devices";
+      tag: "devices-page";
+      Adw.ToastOverlay devices_toast_overlay {
+        Adw.ToolbarView {
+          [top]
+          Adw.HeaderBar {
+          }
+          content: Stack devices_stack {
+              StackPage {
+                name: "devices-list";
+                child: ScrolledWindow {
+                hexpand: true;
+                vexpand: true;
+                Box {
+                  margin-top: 10;
+                  margin-bottom: 10;
+                  margin-start: 10;
+                  margin-end: 10;
+                  spacing: 10;
+                  hexpand: true;
+                  vexpand: true;
+                  orientation: vertical;
+                  Box {
+                    orientation: horizontal;
+                    hexpand: true;
+                    Label {
+                      halign: start;
+                      hexpand: true;
+                      label:"Devices";
+                      styles [
+                        "heading"
+                      ]
+
+                    }
+
+                    Button add_button {
+                      halign: end;
+
+                      styles [
+                        "flat"
+                      ]
+                      Adw.ButtonContent {
+                        icon-name: "plus-symbolic";
+                        label: "Add Device…";
+                      }
+                    }
+                  }
+                  ListBox devices_list {
+                    styles [
+                      "boxed-list"
+                    ]
+                    selection-mode: none;
+                  }
+                }
+              };
+            }
+            StackPage {
+              name: "no-devices";
+              child: Adw.StatusPage {
+                icon-name: "computer-symbolic";
+                title: "No Devices";
+                child: Button status_add {
+                  halign: center;
+                  label: "Add Device";
+                  styles [
+                    "suggested-action",
+                    "pill"
+                  ]
+                };
+              };
+            }
+          };
+        }
+      }
+    }
+    Adw.NavigationPage {
+      title: "Add Device";
+      tag: "add-device-page";
+      Adw.ToastOverlay add_device_toast_overlay {
+        Adw.ToolbarView {
+          [top]
+          Adw.HeaderBar {
+
+          }
+          content: ScrolledWindow {
+            hexpand: true;
+            vexpand: true;
+            Box {
+              margin-top: 10;
+              margin-bottom: 10;
+              margin-start: 10;
+              margin-end: 10;
+              orientation: vertical;
+              spacing: 10;
+              Adw.PreferencesGroup {
+                title: "Connection Info";
+                Adw.EntryRow name_row {
+                  title: "Device Name";
+                }
+                Adw.EntryRow address_row {
+                  title: "Remote IP Address";
+                }
+                Adw.EntryRow username_row {
+                  title: "Remote Username";
+                  // visible: bind same_username_button.active inverted;
+                }
+                Adw.PasswordEntryRow password_row {
+                  title: "Remote Password";
+                  visible: bind key_auth_button.active inverted;
+                }
+              }
+
+              Label empty_name {
+                label: "Device name must not be empty";
+                halign: start;
+                styles [
+                  "error"
+                ]
+              }
+
+              Label empty_address {
+                label: "Address must not be empty";
+                halign: start;
+                styles [
+                  "error"
+                ]
+              }
+
+              Label empty_username {
+                label: "Username must not be empty";
+                halign: start;
+                styles [
+                  "error"
+                ]
+              }
+
+              Label empty_password {
+                label: "Password must not be empty";
+                halign: start;
+                styles [
+                  "error"
+                ]
+              }
+
+              CheckButton key_auth_button {
+                label: "Use SSH key authentication";
+
+              }
+              Button save_button {
+                label: "Save";
+                halign: center;
+                sensitive: false;
+                styles [
+                  "suggested-action",
+                  "pill"
+                ]
+              }
+            }
+          };
+        }
+      }
+    }
+  }
+}

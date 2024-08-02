@@ -3,6 +3,7 @@ using Adw 1;
 
 
 template $RonajoVideoPage: Adw.NavigationPage {
+  tag: "video-page";
   title: "Video";
   Adw.ToolbarView toolbar_view {
     content: Overlay video_overlay {
@@ -18,17 +19,30 @@ template $RonajoVideoPage: Adw.NavigationPage {
             margin-end: 6;
             margin-start: 3;
             spacing: 6;
-
-            ToggleButton fullscreen_button {
+            Box {
               valign: start;
               halign: end;
-              action-name: "win.toggle-fullscreen";
-              icon-name: "arrows-pointing-outward-symbolic";
               styles [
-                "osd",
-                "circular"
+                "linked"
               ]
+
+              Button back_button {
+                icon-name: "left-symbolic";
+                action-name: "navigation.pop";
+                styles [
+                  "osd",
+                ]
+              }
+
+              ToggleButton fullscreen_button {
+                action-name: "win.toggle-fullscreen";
+                icon-name: "arrows-pointing-outward-symbolic";
+                styles [
+                  "osd",
+                ]
+              }
             }
+
             MenuButton {
               hexpand: true;
               valign: start;

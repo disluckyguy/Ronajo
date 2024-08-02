@@ -41,7 +41,7 @@ impl ShowData {
         show_data.genres = data.genres.into_iter().map(|genre| genre.name).collect();
         show_data.rating = data.rating;
         show_data.in_library = super::config::in_library(data.mal_id);
-        let allanime_search = api_search(String::from(&data.title), "sub".to_string(), true).await.expect("failed to search");
+        let allanime_search = api_search(String::from(&data.title), "sub".to_string()).await.expect("failed to search");
         for show in &allanime_search {
                 if show.name.trim().to_lowercase() == data.title.trim().to_lowercase() {
                     show_data.allanime_id = Some(String::from(&show.id));
@@ -150,12 +150,11 @@ pub struct LinkData {
 pub async fn api_search(
     name: String,
     translation: String,
-    sfw: bool,
 ) -> Result<Vec<AllanimeData>, Box<dyn Error>> {
     // let mut easy = Easy::new();
     let query =
     "query(        $search: SearchInput        $limit: Int        $page: Int        $translationType: VaildTranslationTypeEnumType        $countryOrigin: VaildCountryOriginEnumType    ) {    shows(        search: $search        limit: $limit        page: $page        translationType: $translationType        countryOrigin: $countryOrigin    ) {        edges {            _id name availableEpisodes __typename       }    }}";
-    let variables =  format!("{{\"search\":{{\"allowAdult\":{},\"allowUnknown\":false,\"query\":\"{}\"}},\"limit\":40,\"page\":1,\"translationType\":\"{}\",\"countryOrigin\":\"ALL\"}}", !sfw, name, translation);
+    let variables =  format!("{{\"search\":{{\"allowAdult\":{},\"allowUnknown\":false,\"query\":\"{}\"}},\"limit\":40,\"page\":1,\"translationType\":\"{}\",\"countryOrigin\":\"ALL\"}}", true, name, translation);
     let query_encoded: String = form_urlencoded::byte_serialize(query.as_bytes()).collect();
     let variables_encoded: String = form_urlencoded::byte_serialize(variables.as_bytes()).collect();
 
@@ -298,112 +297,6 @@ pub async fn api_get_episode(
     Err("couldn't get episode link".into())
 }
 
-pub fn api_get_episode_blocking(
-    id: String,
-    translation: String,
-    episode_number: u32,
-) -> Result<String, Box<dyn Error>> {
-    let query = "query ($showId: String!, $translationType: VaildTranslationTypeEnumType!, $episodeString: String!) {    episode(        showId: $showId        translationType: $translationType        episodeString: $episodeString    ) {        episodeString sourceUrls    }}";
-    let variables = format!(
-        "{{\"showId\":\"{}\",\"translationType\":\"{}\",\"episodeString\":\"{}\"}}",
-        id, translation, episode_number
-    );
-    let query_encoded: String = form_urlencoded::byte_serialize(query.as_bytes()).collect();
-    let variables_encoded: String = form_urlencoded::byte_serialize(variables.as_bytes()).collect();
-
-    let mut headers: header::HeaderMap = header::HeaderMap::new();
-    headers.insert("Referer", header::HeaderValue::from_static(API_REFERER));
-    let client = reqwest::blocking::Client::builder()
-        .referer(false)
-        .default_headers(headers)
-        .user_agent(API_USERAGENT)
-        .build()?;
-
-    let get = client
-        .get(&format!(
-            "{}?query={}&variables={}",
-            API, query_encoded, variables_encoded
-        ))
-        .send()?
-        .text()?;
-
-    let request_value: serde_json::Value = serde_json::from_str(get.trim())?;
-    let data_value = request_value.get("data").expect("couldn't find data value");
-    let episode_value = data_value
-        .get("episode")
-        .expect("couldn't find episode value");
-    let sources_value = episode_value
-        .get("sourceUrls")
-        .expect("couldn't find sources value");
-    let episode_data: Vec<SourceUrl> = serde_json::from_value(sources_value.clone())?;
-    for source in &episode_data {
-        if source.source_name == "Sak" || source.source_name == "S-mp4" {
-            if source.source_url.get(0..2).unwrap() == "--".to_string() {
-                let mut id = substitute_id(source.source_url.split_at(2).1.to_string());
-
-                if let Some(index) = id.find("clock") {
-                    id.insert_str(index + 5, ".json");
-
-                    let mut headers: header::HeaderMap = header::HeaderMap::new();
-                    headers.insert("Referer", header::HeaderValue::from_static(API_REFERER));
-                    let client = reqwest::blocking::Client::builder()
-                        .referer(false)
-                        .default_headers(headers)
-                        .user_agent(API_USERAGENT)
-                        .build()?;
-
-                    let get = client
-                        .get(&format!("https://{}{}", API_BASE, id))
-                        .send()?
-                        .text()?;
-
-                    let value: serde_json::Value = serde_json::from_str(&get)?;
-                    let links_value = value.get("links").expect("value doesn't exist");
-                    let links_data: Vec<LinkData> = serde_json::from_value(links_value.clone())?;
-
-                    if let Some(data) = links_data.get(0) {
-                        return Ok(data.link.to_string());
-                    }
-                }
-            }
-        }
-    }
-
-    for source in &episode_data {
-        if source.source_name == "Luf-mp4" {
-            if source.source_url.get(0..2).unwrap() == "--".to_string() {
-                let mut id = substitute_id(source.source_url.split_at(2).1.to_string());
-
-                if let Some(index) = id.find("clock") {
-                    id.insert_str(index + 5, ".json");
-
-                    let mut headers: header::HeaderMap = header::HeaderMap::new();
-                    headers.insert("Referer", header::HeaderValue::from_static(API_REFERER));
-                    let client = reqwest::blocking::Client::builder()
-                        .referer(false)
-                        .default_headers(headers)
-                        .user_agent(API_USERAGENT)
-                        .build()?;
-
-                    let get = client
-                        .get(&format!("https://{}{}", API_BASE, id))
-                        .send()?
-                        .text()?;
-
-                    let value: serde_json::Value = serde_json::from_str(&get)?;
-                    let links_value = value.get("links").expect("value doesn't exist");
-                    let links_data: Vec<LinkData> = serde_json::from_value(links_value.clone())?;
-                    if let Some(data) = links_data.get(0) {
-                        return Ok(data.link.to_string());
-                    }
-                }
-            }
-        }
-    }
-
-    Err("couldn't get episode link".into())
-}
-
 pub fn substitute_id(input_id: String) -> String {
     let mut output_id = String::new();
 
@@ -456,12 +349,11 @@ pub fn substitute_id(input_id: String) -> String {
 
 pub async fn jikan_search(name: String) -> Result<Vec<JikanData>, Box<dyn Error>> {
     let client = Client::new();
-    // Define query and variables
-    // Make HTTP post request
+
     let name_encoded: String = form_urlencoded::byte_serialize(name.as_bytes()).collect();
     let resp = client
         .get(format!(
-            "https://api.jikan.moe/v4/anime?q={}&limit=10&sfw&type=tv",
+            "https://api.jikan.moe/v4/anime?q={}&limit=20&type=tv",
             &name_encoded
         ))
         .header("Content-Type", "application/json")
@@ -471,9 +363,8 @@ pub async fn jikan_search(name: String) -> Result<Vec<JikanData>, Box<dyn Error>
         .unwrap()
         .text()
         .await;
-    // Get json output
+
     let result: serde_json::Value = serde_json::from_str(&resp.unwrap())?;
-    // println!("{}", result);
     let data_value = result.get("data").expect("failed to get data");
     let jikan_data: Vec<JikanData> = serde_json::from_value(data_value.clone())?;
     Ok(jikan_data)

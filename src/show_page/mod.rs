@@ -38,7 +38,6 @@ impl RonajoShowPage {
         let title_label = self.imp().title_label.get();
         let rating_label = self.imp().rating_label.get();
         let rating_row = self.imp().rating_row.get();
-        // let translation_row = self.imp().translation_row.get();
         let studio_label = self.imp().studio_label.get();
         let image = self.imp().image.get();
         let description_label = self.imp().description_label.get();
@@ -133,7 +132,10 @@ impl RonajoShowPage {
             episodes.remove_all();
         }
 
-        println!("{}", data.sub_episodes);
+        for genre in &data.genres {
+            self.add_genre(genre);
+        }
+
         for i in 1..data.sub_episodes + 1 {
             self.new_episode(i, "sub");
 
@@ -146,6 +148,12 @@ impl RonajoShowPage {
         if let Some(rating) = get_rating(data.mal_id) {
             rating_row.adjustment().set_value(rating);
         }
+
+        let device_names = device_names().expect("failed to get device names");
+        let devices_slice: Vec<_> = device_names.iter().map(String::as_str).collect();
+        let devices_list = gtk::StringList::new(&devices_slice);
+
+        self.imp().devices_row.set_model(Some(&devices_list));
 
         self.setup_callbacks();
 
@@ -196,13 +204,13 @@ impl RonajoShowPage {
                 match translation.as_str() {
                     "Sub" => {
                         page.episodes().remove_all();
-                        for i in 0..page.data().sub_episodes {
+                        for i in 1..page.data().sub_episodes + 1 {
                             page.new_episode(i, "sub");
                         }
                     }
                     "Dub" => {
                         page.episodes().remove_all();
-                        for i in 0..page.data().dub_episodes {
+                        for i in 1..page.data().dub_episodes + 1 {
                             page.new_episode(i, "dub");
                         }
                     }
@@ -250,7 +258,17 @@ impl RonajoShowPage {
             ));
     }
 
-    pub fn unbind(&self) {
+    pub fn add_genre(&self, name: &str) {
+        let card = gtk::FlowBoxChild::new();
+        card.add_css_class("background");
+        let label = gtk::Label::new(Some(name));
+        label.add_css_class("accent");
+        label.add_css_class("caption-heading");
+
+        card.set_child(Some(&label));
+
+        self.imp().genres.append(&card);
+
     }
 
     pub fn episodes(&self) -> gio::ListStore {
@@ -289,7 +307,12 @@ impl RonajoShowPage {
                 .set_child(Some(&episode_row));
         });
 
-        factory.connect_bind(move |_, listitem| {
+        factory.connect_bind(glib::clone!(
+        #[weak(rename_to = remote_play_row)]
+        self.imp().remote_play_row,
+        #[weak(rename_to = device_row)]
+        self.imp().devices_row,
+        move |_, listitem| {
 
             let episode_object = listitem
                 .downcast_ref::<gtk::ListItem>()
@@ -312,13 +335,14 @@ impl RonajoShowPage {
             episode_row,
             #[weak]
             episode_object,
+            #[weak]
+            remote_play_row,
             move |_| {
-                    let id = episode_object.allanime_id().expect("failed to get id");
-                    let translation = episode_object.translation();
-                    let number = episode_object.number();
-
-                    let (sender, receiver) = async_channel::bounded(1);
-                    runtime().spawn(glib::clone!(
+                let id = episode_object.allanime_id().expect("failed to get id");
+                let translation = episode_object.translation();
+                let number = episode_object.number();
+                let (sender, receiver) = async_channel::bounded(1);
+                runtime().spawn(glib::clone!(
             #[strong]
             sender,
             #[strong]
@@ -336,17 +360,43 @@ impl RonajoShowPage {
         glib::spawn_future_local(glib::clone!(
             #[weak]
             episode_row,
+            #[strong(rename_to = remote_play)]
+            remote_play_row.enables_expansion(),
+            #[weak]
+            device_row,
             async move {
                 while let Ok(data) = receiver.recv().await {
-                    episode_row.activate_action("win.play-video", Some(&data.to_variant()))
+                    if remote_play {
+                        let selected_item = device_row.selected_item().expect("failed to get selected item");
+                        let device_object = selected_item
+                            .downcast_ref::<gtk::StringObject>()
+                            .expect("Object must be String Object");
+                        let device_name = device_object.string().to_string();
+
+                        let device_data = get_device(device_name).expect("failed to get device");
+
+
+                        let json = serde_json::json!({
+                            "data": &device_data,
+                            "url": &data
+                        });
+
+                        episode_row.activate_action("win.play-remote-video", Some(&json.to_string().to_variant()))
                             .expect("The action does not exist.");
+
+                    } else {
+                        episode_row.activate_action("win.play-video", Some(&data.to_variant()))
+                            .expect("The action does not exist.");
+                    }
+
+
                 }
             }
         ));
 
             }));
 
-        });
+        }));
 
         factory.connect_unbind(move |_, listitem| {
             let episode_row = listitem
@@ -364,6 +414,17 @@ impl RonajoShowPage {
 
     pub fn setup_bindings(&self) {
         let imp = self.imp();
+
+        self.episodes().bind_property("n-items", &imp.episode_title.get(), "visible")
+            .transform_to(|_, n_items: u32| {
+                if n_items == 0 {
+                    return Some(false);
+                } else {
+                    return Some(true);
+                }
+            })
+            .sync_create()
+            .build();
 
         imp.expand_button
             .bind_property("active", &imp.description_label.get(), "ellipsize")
