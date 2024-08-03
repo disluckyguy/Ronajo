@@ -158,6 +158,7 @@ impl RonajoWindow {
         let value: serde_json::Value = serde_json::from_str(&parameter).expect("failed to parse");
         let data: PlayerData = serde_json::from_value(value.get("data").unwrap().clone()).expect("failed to parse");
         let url: String = serde_json::from_value(value.get("url").unwrap().clone()).expect("failed to parse");
+        let player: String = self.settings().get("player");
 
         if !data.use_key {
             let entry = adw::PasswordEntryRow::builder()
@@ -186,19 +187,27 @@ impl RonajoWindow {
             data,
             #[strong]
             url,
+            #[strong]
+            player,
             #[weak]
             view,
+
             #[weak]
             entry,
             move |_, response| {
                 if response == "continue" {
                     let mut data = data.clone();
                     data.password = Some(entry.text().to_string());
-                    let player_page = RonajoPlayerPage::new(&data, &url);
+                    let player_page = RonajoPlayerPage::new(&data, &url, &player);
                     view.push(&player_page);
                 }
             }));
             alert_dialog.present(Some(self));
+        } else {
+            let mut data = data.clone();
+            data.password = None;
+            let player_page = RonajoPlayerPage::new(&data, &url, &player);
+            view.push(&player_page);
         }
 
     }

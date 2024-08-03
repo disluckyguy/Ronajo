@@ -19,7 +19,7 @@
       <default>true</default>
       <summary>Whether to apply the filter to the library shows</summary>
     </key>
-	  <key name="filter" type="s">
+	  <key name="player" type="s">
       <choices>
         <choice value='MPV'/>
         <choice value='VLC'/>

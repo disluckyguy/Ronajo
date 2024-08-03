@@ -16,7 +16,7 @@ glib::wrapper! {
 }
 
 impl RonajoPlayerPage {
-    pub fn new(data: &PlayerData, url: &str) -> Self {
+    pub fn new(data: &PlayerData, url: &str, player: &str) -> Self {
         Object::builder()
             .property("device-name", &data.name)
             .property("address", &data.address)
@@ -24,6 +24,7 @@ impl RonajoPlayerPage {
             .property("password", &data.password)
             .property("use-key", data.use_key)
             .property("url", url)
+            .property("player", player)
             .build()
     }
 
@@ -37,8 +38,6 @@ impl RonajoPlayerPage {
 
     pub fn setup_callbacks(&self) {
         let imp = self.imp();
-        let data = self.data();
-
 
 
         let page_weak = self.downgrade();
@@ -47,11 +46,12 @@ impl RonajoPlayerPage {
         move || {
             if let Some(page) = page_weak.upgrade() {
                 let data = page.data();
+                let player = page.player();
 
                 let (sender, receiver) = async_channel::bounded(1);
                 gio::spawn_blocking(move || {
 
-                    if let Ok(position) = data.get_position() {
+                    if let Ok(position) = data.get_position(&player) {
                         sender
                             .send_blocking(position)
                             .expect("The channel needs to be open.");
@@ -71,9 +71,10 @@ impl RonajoPlayerPage {
 
                 let (sender, receiver) = async_channel::bounded(1);
                 let data = page.data();
+                let player = page.player();
                 gio::spawn_blocking(move || {
 
-                    if let Ok(duration) = data.get_duration() {
+                    if let Ok(duration) = data.get_duration(&player) {
                         sender
                             .send_blocking(duration)
                             .expect("The channel needs to be open.");
@@ -100,10 +101,12 @@ impl RonajoPlayerPage {
 
         let timeout_id = RefCell::new(Some(timeout_id));
         self.connect_unrealize(
-            move |_| {
-                let data = data.clone();
+            move |page| {
+                let data = page.data();
+                let player = page.player();
+
                 gio::spawn_blocking(move || {
-                    data.quit().expect("failed to quit");
+                    data.quit(&player).expect("failed to quit");
                 });
                 if let Some(timeout_id) = timeout_id.borrow_mut().take() {
                     timeout_id.remove();
@@ -116,11 +119,14 @@ impl RonajoPlayerPage {
         imp.seek_forward.connect_clicked(glib::clone!(
             #[strong(rename_to = data)]
             self.data(),
+            #[strong(rename_to = player)]
+            self.player(),
             move |_| {
                 let data = data.clone();
+                let player = player.clone();
                 let sender = sender.clone();
                 gio::spawn_blocking(move || {
-                    data.seek_forward().expect("failed to seek");
+                    data.seek_forward(&player).expect("failed to seek");
                     sender
                         .send_blocking(10f64)
                         .expect("thread must be open");
@@ -146,11 +152,14 @@ impl RonajoPlayerPage {
         imp.seek_backward.connect_clicked(glib::clone!(
             #[strong(rename_to = data)]
             self.data(),
+            #[strong(rename_to = player)]
+            self.player(),
             move |_| {
                 let data = data.clone();
+                let player = player.clone();
                 let sender = sender.clone();
                 gio::spawn_blocking(move || {
-                    data.seek_backward().expect("failed to seek");
+                    data.seek_backward(&player).expect("failed to seek");
                     sender
                         .send_blocking(10f64)
                         .expect("thread must be open");
@@ -181,10 +190,13 @@ impl RonajoPlayerPage {
         imp.screenshot_button.connect_clicked(glib::clone!(
             #[strong(rename_to = data)]
             self.data(),
+            #[strong(rename_to = player)]
+            self.player(),
             move |_| {
                 let data = data.clone();
+                let player = player.clone();
                 gio::spawn_blocking(move || {
-                    data.screenshot().expect("failed to screenshot");
+                    data.screenshot(&player).expect("failed to screenshot");
                 });
             }
         ));
@@ -194,16 +206,17 @@ impl RonajoPlayerPage {
             self.data(),
             move |page| {
                 let data = data.clone();
+                let player = page.player();
                 if page.muted() {
 
                     gio::spawn_blocking(move || {
-                        data.set_muted(true).expect("failed to mute");
+                        data.set_muted(true, &player).expect("failed to mute");
                     });
 
                 } else {
 
                     gio::spawn_blocking(move || {
-                        data.set_muted(false).expect("failed to unmute");
+                        data.set_muted(false, &player).expect("failed to unmute");
                     });
                 }
             }
@@ -214,15 +227,16 @@ impl RonajoPlayerPage {
             self.data(),
             move |page| {
                 let data = data.clone();
+                let player = page.player();
 
                 if page.paused() {
                     gio::spawn_blocking(move || {
-                        data.set_paused(true).expect("failed to mute");
+                        data.set_paused(true, &player).expect("failed to mute");
                     });
 
                 } else {
                     gio::spawn_blocking(move || {
-                        data.set_paused(false).expect("failed to unmute");
+                        data.set_paused(false, &player).expect("failed to unmute");
                     });
 
                 }
@@ -232,12 +246,14 @@ impl RonajoPlayerPage {
         imp.video_scale.connect_change_value(glib::clone!(
             #[strong(rename_to = data)]
             self.data(),
+            #[strong(rename_to = player)]
+            self.player(),
             move |_scale, _, value| {
                 let data = data.clone();
                 let value = value.clone();
-                println!("{}", value);
+                let player = player.clone();
                 gio::spawn_blocking(move || {
-                    let _ = data.seek_to(value);
+                    let _ = data.seek_to(value, &player);
                 });
                 false.into()
             }
@@ -249,9 +265,10 @@ impl RonajoPlayerPage {
             self.data(),
             move |page| {
                 let data = data.clone();
+                let player = page.player();
                 let rate = page.rate();
                 gio::spawn_blocking(move || {
-                    data.set_rate(rate).expect("failed to mute");
+                    data.set_rate(rate, &player).expect("failed to mute");
                 });
             }
         ));
@@ -262,8 +279,9 @@ impl RonajoPlayerPage {
             move |page| {
                 let data = data.clone();
                 let volume = page.volume();
+                let player = page.player();
                 gio::spawn_blocking(move || {
-                    data.set_volume(volume).expect("failed to mute");
+                    data.set_volume(volume, &player).expect("failed to mute");
                 });
             }
         ));

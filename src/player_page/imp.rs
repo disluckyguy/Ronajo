@@ -7,7 +7,6 @@ use gtk::CompositeTemplate;
 use gtk::TemplateChild;
 use std::cell::Cell;
 use std::cell::RefCell;
-use std::cell::OnceCell;
 
 #[derive(Debug, CompositeTemplate, Default, Properties)]
 #[properties(wrapper_type = super::RonajoPlayerPage)]
@@ -31,6 +30,8 @@ pub struct RonajoPlayerPage {
     pub position: Cell<f64>,
     #[property(get, set, construct)]
     pub url: RefCell<String>,
+    #[property(get, set, construct)]
+    pub player: RefCell<String>,
     #[template_child]
     pub stack: TemplateChild<gtk::Stack>,
     #[template_child]
@@ -57,7 +58,6 @@ pub struct RonajoPlayerPage {
     pub screenshot_button: TemplateChild<gtk::Button>,
     #[template_child]
     pub quit_button: TemplateChild<gtk::Button>,
-    pub settings: OnceCell<gio::Settings>
 }
 
 #[glib::object_subclass]
@@ -83,10 +83,11 @@ impl ObjectImpl for RonajoPlayerPage {
         let obj = self.obj();
         let (sender, receiver) = async_channel::bounded(1);
         let data = obj.data();
+        let player = obj.player();
         let url = obj.url();
         gio::spawn_blocking(move || {
             sender.send_blocking(false).expect("thread must be open");
-            data.start_session(&url).expect("failed to start session");
+            data.start_session(&url, &player).expect("failed to start session");
             sender.send_blocking(true).expect("thread must be open");
         });
 
