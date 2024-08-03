@@ -224,8 +224,10 @@ impl RonajoVideoPage {
         let bus_watch = bus
             .add_watch_local(move |_, msg| {
                 use gst::MessageView;
+                println!("{:?}", msg.view());
 
                 match msg.view() {
+
                     MessageView::Eos(..) => {
                         if let Some(page) = page_weak.upgrade() {
                             page.playbin()
@@ -278,6 +280,14 @@ impl RonajoVideoPage {
         let playbin = self.playbin();
 
         let click_event = gtk::GestureClick::new();
+
+        self.connect_unrealize(glib::clone!(
+            move |page| {
+                page.playbin()
+                    .set_state(gst::State::Null)
+                    .expect("failed to set state");
+            }
+        ));
 
         click_event.connect_pressed(glib::clone!(
             #[weak(rename_to = page)]

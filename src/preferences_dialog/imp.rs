@@ -3,20 +3,22 @@ use adw::subclass::prelude::*;
 use adw::{gio, glib};
 use gtk::CompositeTemplate;
 use gtk::TemplateChild;
-use std::cell::RefCell;
+use std::cell::OnceCell;
 
 #[derive(CompositeTemplate, Default)]
 #[template(file = "src/gtk/preferences-dialog.blp")]
 pub struct RonajoPreferencesDialog {
     #[template_child]
-    change_config_row: TemplateChild<adw::ActionRow>,
+    pub change_config_row: TemplateChild<adw::ActionRow>,
     #[template_child]
-    change_config_button: TemplateChild<gtk::Button>,
+    pub change_config_button: TemplateChild<gtk::Button>,
     #[template_child]
-    pub devices_list: TemplateChild<adw::PreferencesGroup>,
+    pub enable_nsfw: TemplateChild<adw::SwitchRow>,
     #[template_child]
-    pub add_device_button: TemplateChild<gtk::Button>,
-    pub device_rows: RefCell<Vec<adw::ActionRow>>
+    pub enable_ecchi: TemplateChild<adw::SwitchRow>,
+    #[template_child]
+    pub filter_library: TemplateChild<adw::SwitchRow>,
+    pub settings: OnceCell<gio::Settings>
 }
 
 #[glib::object_subclass]
@@ -41,13 +43,20 @@ impl ObjectImpl for RonajoPreferencesDialog {
 
         let obj = self.obj();
 
-        let settings = gio::Settings::new("io.github.ronajo");
+        obj.setup_settings();
+        obj.setup_callbacks();
 
         let config_row = obj.imp().change_config_row.get();
 
-        settings
+        obj.settings()
             .bind("config-path", &config_row, "subtitle")
             .build();
+
+        obj.settings()
+            .bind("filter-library", &self.filter_library.get(), "active")
+            .build();
+
+
 
     }
 }

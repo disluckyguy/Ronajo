@@ -17,6 +17,7 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+use gio::Settings;
 use crate::core::show_data::*;
 use crate::core::player_data::PlayerData;
 use crate::core::config::*;
@@ -27,10 +28,11 @@ use crate::show_page::RonajoShowPage;
 use crate::video_page::RonajoVideoPage;
 use crate::player_page::RonajoPlayerPage;
 use adw::prelude::*;
+use gst::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{gio, glib};
-use gst::prelude::*;
 use std::cell;
+use std::cell::OnceCell;
 use std::ops::{Add, Sub};
 
 mod imp {
@@ -57,6 +59,7 @@ mod imp {
         pub search_entry: TemplateChild<gtk::SearchEntry>,
         pub shows: cell::RefCell<Option<gio::ListStore>>,
         pub library_shows: cell::RefCell<Option<gio::ListStore>>,
+        pub settings: OnceCell<gio::Settings>,
     }
 
     #[glib::object_subclass]
@@ -81,6 +84,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_settings();
             obj.setup_gactions();
 
             obj.setup_shows();
@@ -367,12 +371,16 @@ impl RonajoWindow {
             .parameter_type(Some(&String::static_variant_type()))
             .activate(move |window: &Self, action, parameter| window.play_remote_video(action, parameter))
             .build();
-        self.add_action_entries([change_config_action, play_video_action, play_remote_video_action]);
 
         let toggle_fullscreen_action = gio::ActionEntry::builder("toggle-fullscreen")
             .activate(move |window: &Self, _, _| window.toggle_fullscreen())
             .build();
-        self.add_action_entries([toggle_fullscreen_action]);
+
+        let action_filter = self.settings().create_action("filter");
+        self.add_action(&action_filter);
+
+        self.add_action_entries([change_config_action, play_video_action, play_remote_video_action, toggle_fullscreen_action]);
+
 
         let seek_forward_action = gio::ActionEntry::builder("seek-forward")
             .activate(glib::clone!(
@@ -471,6 +479,21 @@ impl RonajoWindow {
         self.insert_action_group("vid", Some(&video_actions));
     }
 
+    fn setup_settings(&self) {
+        let settings = Settings::new("io.github.ronajo");
+        self.imp()
+            .settings
+            .set(settings)
+            .expect("`settings` should not be set before calling `setup_settings`.");
+    }
+
+    fn settings(&self) -> &Settings {
+        self.imp()
+            .settings
+            .get()
+            .expect("`settings` should be set in `setup_settings`.")
+    }
+
     pub fn shows(&self) -> gio::ListStore {
         self.imp()
             .shows
@@ -485,12 +508,31 @@ impl RonajoWindow {
 
         imp.shows.replace(Some(model));
 
-        let selection_model = gtk::NoSelection::new(Some(self.shows()));
+        let filter_model = gtk::FilterListModel::new(Some(self.shows()), self.filter());
+        let selection_model = gtk::NoSelection::new(Some(filter_model.clone()));
+
         imp.show_view.set_model(Some(&selection_model));
+
+        self.settings().connect_changed(
+            Some("filter"),
+            glib::clone!(
+                #[weak(rename_to = window)]
+                self,
+                #[weak]
+                filter_model,
+                move |_, _| {
+                    println!("changed");
+
+                    filter_model.set_filter(window.filter().as_ref());
+                }
+            ),
+        );
     }
 
     pub fn setup_callbacks(&self) {
         let imp = self.imp();
+
+
 
         imp.stack.connect_visible_child_notify(glib::clone!(
             #[weak(rename_to = window)]
@@ -657,11 +699,53 @@ impl RonajoWindow {
     pub fn setup_library_shows(&self) {
         let imp = self.imp();
         let model = gio::ListStore::new::<ShowObject>();
+        let filter_library: bool = self.settings().get("filter-library");
 
         imp.library_shows.replace(Some(model));
 
-        let selection_model = gtk::NoSelection::new(Some(self.library_shows()));
+        let filter_model = if filter_library {
+            gtk::FilterListModel::new(Some(self.library_shows()), self.filter())
+        } else {
+            gtk::FilterListModel::new(Some(self.library_shows()), None::<gtk::CustomFilter>)
+        };
+        let selection_model = gtk::NoSelection::new(Some(filter_model.clone()));
         imp.library_view.set_model(Some(&selection_model));
+
+        self.settings().connect_changed(
+            Some("filter-library"),
+            glib::clone!(
+                #[weak(rename_to = window)]
+                self,
+                #[weak]
+                filter_model,
+                move |settings, _| {
+
+                    let state: bool = settings.get("filter-library");
+                    if state {
+                        filter_model.set_filter(window.filter().as_ref());
+                    } else {
+                        filter_model.set_filter(None::<&gtk::CustomFilter>);
+                    }
+
+                }
+            ),
+        );
+
+        self.settings().connect_changed(
+            Some("filter"),
+            glib::clone!(
+                #[weak(rename_to = window)]
+                self,
+                #[weak]
+                filter_model,
+                move |settings, _| {
+                    let filter_library: bool = settings.get("filter-library");
+                    if filter_library {
+                        filter_model.set_filter(window.filter().as_ref());
+                    }
+                }
+            ),
+        );
 
         for show in library_shows().expect("failed to get library shows") {
             self.new_library_show(show.0);
@@ -752,5 +836,38 @@ impl RonajoWindow {
 
         self.imp().library_view.set_factory(Some(&factory));
     }
+
+    fn filter(&self) -> Option<gtk::CustomFilter> {
+        // Get filter_state from settings
+        let filter_state: String = self.settings().get("filter");
+
+        println!("{}", filter_state);
+
+        // Create custom filters
+        let filter_nsfw = gtk::CustomFilter::new(|obj| {
+            let show_object = obj
+                .downcast_ref::<ShowObject>()
+                .expect("The object needs to be of type `ShowObject`.");
+
+            !show_object.is_adult()
+        });
+        let filter_sfw_with_ecchi = gtk::CustomFilter::new(|obj| {
+            let show_object = obj
+                .downcast_ref::<ShowObject>()
+                .expect("The object needs to be of type `ShowObject`.");
+
+            !(show_object.is_ecchi() || show_object.is_adult())
+        });
+
+        // Return the correct filter
+        match filter_state.as_str() {
+            "sfw" => Some(filter_nsfw),
+            "nsfw" => None,
+            "sfw-with-ecchi" => Some(filter_sfw_with_ecchi),
+            "nsfw-with-ecchi" => None,
+            _ => unreachable!(),
+        }
+    }
 }
+
 

@@ -11,38 +11,33 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
       name: "general";
       title: "General";
       Adw.PreferencesGroup {
-          title: "General";
-          Adw.ActionRow change_config_row {
-            title: "Configs Location";
-            subtitle: "home";
-            activatable-widget: change_config_button;
-            [suffix]
-            Button change_config_button {
-              margin-top: 5;
-              margin-bottom: 5;
-              action-name: "win.change-config";
-              icon-name: "edit-symbolic";
-              styles [
-                "flat"
-              ]
-            }
+        title: "General";
+        Adw.SwitchRow enable_nsfw {
+          title: "Allow NSFW Shows";
+          subtitle: "Please only enable this if you are over 18 years old.";
+        }
+        Adw.SwitchRow enable_ecchi {
+          title: "Allow Ecchi Shows";
+          sensitive: bind enable_nsfw.active inverted;
+        }
+        Adw.SwitchRow filter_library {
+          title: "Apply Filter for Library";
+        }
+        Adw.ActionRow change_config_row {
+          title: "Configs Location";
+          subtitle: "home";
+          activatable-widget: change_config_button;
+          [suffix]
+          Button change_config_button {
+            margin-top: 5;
+            margin-bottom: 5;
+            action-name: "win.change-config";
+            icon-name: "edit-symbolic";
+            styles [
+              "flat"
+            ]
           }
+        }
       }
     }
-
-  Adw.PreferencesPage {
-    icon-name: "computer-symbolic";
-    name: "devices";
-    title: "Devices";
-    Adw.PreferencesGroup devices_list {
-      title: "Devices";
-      header-suffix: Button {
-        icon-name: "plus-symbolic";
-        action-name: "app.add-device";
-        styles [
-          "flat"
-        ]
-      };
-    }
-  }
 }

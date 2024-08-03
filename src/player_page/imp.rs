@@ -7,6 +7,7 @@ use gtk::CompositeTemplate;
 use gtk::TemplateChild;
 use std::cell::Cell;
 use std::cell::RefCell;
+use std::cell::OnceCell;
 
 #[derive(Debug, CompositeTemplate, Default, Properties)]
 #[properties(wrapper_type = super::RonajoPlayerPage)]
@@ -56,6 +57,7 @@ pub struct RonajoPlayerPage {
     pub screenshot_button: TemplateChild<gtk::Button>,
     #[template_child]
     pub quit_button: TemplateChild<gtk::Button>,
+    pub settings: OnceCell<gio::Settings>
 }
 
 #[glib::object_subclass]

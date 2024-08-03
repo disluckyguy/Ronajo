@@ -27,4 +27,33 @@ impl ShowObject {
 
         object
     }
+
+    pub fn data(&self) -> JikanData{
+        self
+            .imp()
+            .data
+            .borrow()
+            .clone()
+            .expect("failed to get data")
+    }
+
+    pub fn is_adult(&self) -> bool {
+        let rating = self.data().rating;
+        let rating_words: Vec<&str> = rating.split_whitespace().collect();
+
+        if rating_words[0] == "Rx" {
+            return true;
+        }
+        false
+    }
+
+    pub fn is_ecchi(&self) -> bool {
+        let rating = self.data().rating;
+        let rating_words: Vec<&str> = rating.split_whitespace().collect();
+
+        if rating_words[0] == "R+" {
+            return true;
+        }
+        false
+    }
 }

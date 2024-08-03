@@ -81,6 +81,7 @@ fn main() -> glib::ExitCode {
 
     unsafe {
         gst::deinit();
+        println!("deinitialized");
     }
 
     res
