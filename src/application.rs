@@ -142,8 +142,8 @@ impl RonajoApplication {
     fn show_about(&self) {
         let window = self.active_window().unwrap();
         let about = adw::AboutDialog::builder()
-            .application_name("ronajo")
-            .application_icon("io.github.ronajo")
+            .application_name("Ronajo")
+            .application_icon("io.github.Ronajo")
             .developer_name("Mostafa")
             .version(VERSION)
             .developers(vec!["Mostafa"])

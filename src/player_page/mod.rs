@@ -9,6 +9,9 @@ use std::time::Duration;
 use crate::tools::*;
 use std::cell::RefCell;
 use crate::window::VideoData;
+use crate::runtime;
+use crate::core::show_data::*;
+
 glib::wrapper! {
     pub struct RonajoPlayerPage(ObjectSubclass<imp::RonajoPlayerPage>)
     @extends adw::NavigationPage, gtk::Widget, glib::InitiallyUnowned,
@@ -40,6 +43,50 @@ impl RonajoPlayerPage {
             .clone()
     }
 
+    pub fn play_next_episode(&self) {
+
+
+        let (sender, receiver) = async_channel::bounded(1);
+        let data = self.data();
+        let player = self.player();
+        let allanime_id = self.allanime_id();
+        let translation = self.translation();
+        let episode_number = self.episode_number() + 1;
+
+        self.data().quit(&player).expect("failed to quit");
+        runtime().spawn(
+        async move  {
+            sender
+                .send(false)
+                .await
+                .expect("thread must be open");
+            let uri = api_get_episode(allanime_id, translation, episode_number).await.expect("failed to get episode");
+            data.start_session(&uri, &player).expect("failed to start session");
+            sender
+                .send(true)
+                .await
+                .expect("thread must be open");
+        });
+
+        glib::spawn_future_local(glib::clone!(
+            #[weak(rename_to = stack)]
+            self.imp().stack,
+            #[weak(rename_to = page)]
+            self,
+            async move {
+                while let Ok(show_player) = receiver.recv().await {
+                    if show_player {
+                        stack.set_visible_child_name("player");
+                        page.set_episode_number(page.episode_number() + 1);
+
+                    } else {
+                        stack.set_visible_child_name("spinner");
+                    }
+                }
+            }
+        ));
+    }
+
     pub fn setup_callbacks(&self) {
         let imp = self.imp();
 
@@ -69,6 +116,15 @@ impl RonajoPlayerPage {
                     async move {
                         while let Ok(position) = receiver.recv().await {
                             page.set_position(position);
+                            let difference = page.duration() - page.position();
+                            if difference <= 10f64 && page.duration() != 0f64 {
+                                if page.episode_number() == page.total_episodes() {
+                                    page.activate_action("navigation.pop", None)
+                                        .expect("action does not exist");
+                                } else {
+                                    page.play_next_episode();
+                                }
+                            }
                         }
                     }
                 ));
@@ -91,6 +147,7 @@ impl RonajoPlayerPage {
                     page,
                     async move {
                         while let Ok(duration) = receiver.recv().await {
+                            page.set_duration(duration);
                             page.imp().duration_label.set_label(&seconds_to_timestamp(duration));
                             page.imp().video_scale.adjustment().set_upper(duration);
                         }
@@ -143,7 +200,6 @@ impl RonajoPlayerPage {
         self.imp().video_scale,
         async move {
             while let Ok(value) = receiver.recv().await {
-                println!("sent");
 
                 let adjustment_value = scale.adjustment().value();
                 scale.adjustment().set_value(adjustment_value + value);
@@ -176,7 +232,6 @@ impl RonajoPlayerPage {
         self.imp().video_scale,
         async move {
             while let Ok(value) = receiver.recv().await {
-                println!("sent");
                 let adjustment_value = scale.adjustment().value();
                 scale.adjustment().set_value(adjustment_value - value);
             }

@@ -109,6 +109,70 @@ impl RonajoVideoPage {
         }
     }
 
+    pub fn play_next_episode(&self) {
+        let (sender, receiver) = async_channel::bounded(1);
+        // Connect to "clicked" signal of `button`
+        runtime().spawn(glib::clone!(
+            #[strong(rename_to = id)]
+            self.allanime_id(),
+            #[strong(rename_to = translation)]
+            self.translation(),
+            #[strong(rename_to = episode_number)]
+            self.episode_number() + 1,
+            #[strong]
+            sender,
+            async move {
+                sender
+                    .send(None)
+                    .await
+                    .expect("The channel needs to be open.");
+                let uri = api_get_episode(id, translation, episode_number).await.expect("failed to get episode");
+                sender
+                    .send(Some(uri))
+                    .await
+                    .expect("The channel needs to be open.");
+            }
+        ));
+
+    // The main loop executes the asynchronous block
+    glib::spawn_future_local(glib::clone!(
+        #[weak(rename_to = page)]
+        self,
+        #[weak(rename_to = video_slider)]
+        self.imp().video_slider,
+        #[weak(rename_to = play_button)]
+        self.imp().play_button,
+        #[weak(rename_to = seek_forward)]
+        self.imp().seek_forward,
+        #[weak(rename_to = seek_backward)]
+        self.imp().seek_backward,
+        async move {
+
+            while let Ok(response) = receiver.recv().await {
+                if let Some(uri) = response {
+                    let playbin = page.playbin();
+                     playbin.set_state(gst::State::Ready)
+                         .expect("failed to set playbin to Null state");
+                     playbin.set_property("uri", uri);
+
+                     playbin.set_state(gst::State::Playing)
+                         .expect("failed to set playbin to playing state");
+                    video_slider.set_sensitive(true);
+                    play_button.set_sensitive(true);
+                    seek_forward.set_sensitive(true);
+                    seek_backward.set_sensitive(true);
+                    page.set_episode_number(page.episode_number() + 1);
+                } else {
+                    video_slider.set_sensitive(false);
+                    play_button.set_sensitive(false);
+                    seek_forward.set_sensitive(false);
+                    seek_backward.set_sensitive(false);
+                }
+
+            }
+        }));
+    }
+
     pub fn setup_stream(&self) {
 
         let sink = gst::ElementFactory::make("gtk4paintablesink")
@@ -284,22 +348,33 @@ impl RonajoVideoPage {
         let page_weak = self.downgrade();
 
         let bus_watch = bus
-            .add_watch_local(move |_, msg| {
+            .add_watch_local(
+                glib::clone!(
+                #[weak(rename_to = page)]
+                self,
+                #[upgrade_or_panic]
+                move |_, msg| {
                 use gst::MessageView;
 
                 match msg.view() {
 
                     MessageView::Eos(..) => {
-                        if let Some(page) = page_weak.upgrade() {
-                            page.playbin()
-                                .set_state(gst::State::Null)
-                                .expect("Unable to set the playbin to the `Playing` state");
+                        page.playbin()
+                            .set_state(gst::State::Null)
+                            .expect("Unable to set the playbin to the `Playing` state");
 
-                            page.set_paused(true);
+                        page.set_paused(true);
 
-                            if page.loop_video() {
-                                page.set_paused(false);
+                        if page.loop_video() {
+                            page.set_paused(false);
+                        } else {
+                            if page.episode_number() == page.total_episodes() {
+                                page.activate_action("navigation.pop", None)
+                                    .expect("action does not exist");
+                            } else {
+                                page.play_next_episode()
                             }
+
                         }
                     }
                     MessageView::Error(err) => {
@@ -314,7 +389,7 @@ impl RonajoVideoPage {
                 };
 
                 glib::ControlFlow::Continue
-            })
+            }))
             .expect("Failed to add bus watch");
 
         let timeout_id = RefCell::new(Some(timeout_id));
@@ -404,25 +479,15 @@ impl RonajoVideoPage {
 
         self.add_controller(mouse_scroll_event);
 
-        imp.video_slider.connect_value_changed(glib::clone!(
+        imp.video_slider.connect_change_value(glib::clone!(
             #[weak]
             playbin,
-            move |scale| {
-                if let Some(position) = playbin.query_position::<gst::ClockTime>() {
-                    let value = scale.adjustment().value() as u64;
-                    let difference = (position.seconds() as i64 - value as i64).abs();
+            #[upgrade_or_panic]
+            move |_,_, value| {
+                let _ = playbin
+                    .seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(value as u64));
 
-                    if difference > 1 {
-                        playbin
-                            .seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(value))
-                            .expect("failed to seek");
-                    }
-                } else {
-                    let value = scale.adjustment().value() as u64;
-                    playbin
-                        .seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(value))
-                        .expect("failed to seek");
-                }
+                false.into()
             }
         ));
 

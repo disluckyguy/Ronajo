@@ -41,6 +41,8 @@ pub struct RonajoPlayerPage {
     #[property(get, set, construct)]
     pub position: Cell<f64>,
     #[property(get, set, construct)]
+    pub duration: Cell<f64>,
+    #[property(get, set, construct)]
     pub player: RefCell<String>,
     #[template_child]
     pub stack: TemplateChild<gtk::Stack>,

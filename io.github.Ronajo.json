@@ -14,7 +14,8 @@
         "--socket=pulseaudio",
         "--device=dri",
         "--socket=wayland",
-        "--filesystem=home"
+        "--filesystem=home",
+        "--socket=ssh-auth"
     ],
     "build-options" : {
         "append-path" : "/usr/lib/sdk/rust-stable/bin",
