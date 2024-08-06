@@ -28,5 +28,13 @@
       <default>'VLC'</default>
       <summary>Player for remote player</summary>
     </key>
+	  <key name="translation" type="s">
+      <choices>
+        <choice value='sub'/>
+        <choice value='dub'/>
+      </choices>
+      <default>'sub'</default>
+      <summary>Translation type for shows</summary>
+    </key>
 	</schema>
 </schemalist>

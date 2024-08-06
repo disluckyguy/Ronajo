@@ -31,7 +31,6 @@ mod episode_object;
 mod video_page;
 mod player_page;
 mod devices_dialog;
-mod password_dialog;
 mod device_object;
 mod tools;
 

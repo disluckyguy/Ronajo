@@ -20,6 +20,8 @@ pub struct RonajoPreferencesDialog {
     pub filter_library: TemplateChild<adw::SwitchRow>,
     #[template_child]
     pub player: TemplateChild<adw::ComboRow>,
+    #[template_child]
+    pub translation: TemplateChild<adw::ComboRow>,
     pub settings: OnceCell<gio::Settings>
 }
 

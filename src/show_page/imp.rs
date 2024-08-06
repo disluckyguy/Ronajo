@@ -7,6 +7,7 @@ use std::cell;
 use crate::core::show_data::ShowData;
 use glib::Properties;
 use std::cell::RefCell;
+use std::cell::OnceCell;
 
 #[derive(Debug, CompositeTemplate, Default, Properties)]
 #[properties(wrapper_type = super::RonajoShowPage)]
@@ -54,6 +55,7 @@ pub struct RonajoShowPage {
     pub data: RefCell<Option<ShowData>>,
 
     pub episodes: cell::RefCell<Option<gio::ListStore>>,
+    pub settings: OnceCell<gio::Settings>
 }
 
 #[glib::object_subclass]
@@ -76,6 +78,7 @@ impl ObjectSubclass for RonajoShowPage {
 impl ObjectImpl for RonajoShowPage {
     fn constructed(&self) {
         let obj = self.obj();
+        obj.setup_settings();
         obj.setup_episodes();
         obj.setup_bindings();
     }

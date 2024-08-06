@@ -31,6 +31,21 @@ impl RonajoShowPage {
             .expect("failed to get data")
     }
 
+    fn setup_settings(&self) {
+        let settings = gio::Settings::new("io.github.Ronajo");
+        self.imp()
+            .settings
+            .set(settings)
+            .expect("`settings` should not be set before calling `setup_settings`.");
+    }
+
+    fn settings(&self) -> &gio::Settings {
+        self.imp()
+            .settings
+            .get()
+            .expect("`settings` should be set in `setup_settings`.")
+    }
+
 
     pub fn bind_show_data(&self, data: &ShowData) {
         self.imp().data.replace(Some(data.clone()));
@@ -223,6 +238,19 @@ impl RonajoShowPage {
                 }
             }
         ));
+
+        let translation: String = self.settings().get("translation");
+
+        match translation.as_str() {
+            "sub" => {
+                imp.translation_row.set_selected(0);
+            }
+            "dub" => {
+                imp.translation_row.set_selected(1);
+            }
+            _ => unreachable!()
+        };
+
     }
 
 

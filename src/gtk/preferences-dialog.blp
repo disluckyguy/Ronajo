@@ -29,6 +29,12 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
             strings ["MPV", "VLC"]
           };
         }
+        Adw.ComboRow translation {
+          title: "Translation";
+          model: StringList {
+            strings ["Sub", "Dub"]
+          };
+        }
         Adw.ActionRow change_config_row {
           title: "Configs Location";
           subtitle: "home";
