@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="ronajo">
-	<schema id="io.github.ronajo" path="/io/github/ronajo/">
+	<schema id="io.github.Ronajo" path="/io/github/Ronajo/">
 	  <key name="config-path" type="s">
-	    <default>"Home"</default>
+	    <default>'Home'</default>
       <summary>Path of the config folder</summary>
 	  </key>
-	  <key name="filter" type="s">
+    <key name="filter" type="s">
+
       <choices>
         <choice value='sfw'/>
-        <choice value='sfw-with-ecchi'/>
         <choice value='nsfw'/>
+        <choice value='sfw-with-ecchi'/>
         <choice value='nsfw-with-ecchi'/>
       </choices>
       <default>'sfw'</default>
-      <summary>Filter of the Shows</summary>
+      <summary>Filter of the shows</summary>
     </key>
 	  <key name="filter-library" type="b">
-      <default>true</default>
-      <summary>Whether to apply the filter to the library shows</summary>
-    </key>
+	    <default>false</default>
+	    <summary>whether to apply the filter for the library</summary>
+	  </key>
 	  <key name="player" type="s">
       <choices>
         <choice value='MPV'/>
         <choice value='VLC'/>
       </choices>
-      <default>'MPV'</default>
-      <summary>Video Player for Remote Playing</summary>
+      <default>'VLC'</default>
+      <summary>Player for remote player</summary>
     </key>
 	</schema>
 </schemalist>

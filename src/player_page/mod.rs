@@ -8,7 +8,7 @@ use crate::core::player_data::PlayerData;
 use std::time::Duration;
 use crate::tools::*;
 use std::cell::RefCell;
-
+use crate::window::VideoData;
 glib::wrapper! {
     pub struct RonajoPlayerPage(ObjectSubclass<imp::RonajoPlayerPage>)
     @extends adw::NavigationPage, gtk::Widget, glib::InitiallyUnowned,
@@ -16,15 +16,19 @@ glib::wrapper! {
 }
 
 impl RonajoPlayerPage {
-    pub fn new(data: &PlayerData, url: &str, player: &str) -> Self {
+    pub fn new(device_data: &PlayerData, video_data: &VideoData, player: &str) -> Self {
         Object::builder()
-            .property("device-name", &data.name)
-            .property("address", &data.address)
-            .property("username", &data.username)
-            .property("password", &data.password)
-            .property("use-key", data.use_key)
-            .property("url", url)
+            .property("device-name", &device_data.name)
+            .property("address", &device_data.address)
+            .property("username", &device_data.username)
+            .property("password", &device_data.password)
+            .property("use-key", device_data.use_key)
             .property("player", player)
+            .property("allanime_id", &video_data.allanime_id)
+            .property("title", &video_data.title)
+            .property("translation", &video_data.translation)
+            .property("episode_number", video_data.episode_number)
+            .property("total_episodes", video_data.total_episodes)
             .build()
     }
 
@@ -309,6 +313,18 @@ impl RonajoPlayerPage {
             })
             .sync_create()
             .build();
+
+        self.bind_property("episode_number", &imp.episode_label.get(), "label")
+            .transform_to(move |_, episode_number: u32| {
+                Some(format!("Episode {}", episode_number).to_value())
+            })
+            .sync_create()
+            .build();
+
+        self.bind_property("title", &imp.title_label.get(), "label")
+            .sync_create()
+            .build();
+
 
         self.bind_property("volume", &imp.volume_spin.adjustment(), "value")
             .bidirectional()

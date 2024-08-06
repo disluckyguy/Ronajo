@@ -17,7 +17,7 @@ blueprints = custom_target('blueprints',
 )
 
 gnome.compile_resources('ronajo',
-  'ronajo.gresource.xml',
+  'Ronajo.gresource.xml',
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,

@@ -38,7 +38,11 @@ impl ShowObject {
     }
 
     pub fn is_adult(&self) -> bool {
-        let rating = self.data().rating;
+        let rating_option = self.data().rating;
+        if let None = rating_option {
+            return false;
+        }
+        let rating = rating_option.unwrap();
         let rating_words: Vec<&str> = rating.split_whitespace().collect();
 
         if rating_words[0] == "Rx" {
@@ -48,7 +52,11 @@ impl ShowObject {
     }
 
     pub fn is_ecchi(&self) -> bool {
-        let rating = self.data().rating;
+        let rating_option = self.data().rating;
+        if let None = rating_option {
+            return false;
+        }
+        let rating = rating_option.unwrap();
         let rating_words: Vec<&str> = rating.split_whitespace().collect();
 
         if rating_words[0] == "R+" {

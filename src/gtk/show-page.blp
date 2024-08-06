@@ -18,33 +18,33 @@ template $RonajoShowPage : Adw.NavigationPage {
           Adw.Clamp {
             maximum-size: 1000;
 
-
           Box {
             orientation: vertical;
+            hexpand: true;
             Box {
               styles [
                 "card"
               ]
               hexpand: true;
               orientation: horizontal;
-              Image image {
+              overflow: hidden;
+              Picture picture {
                   halign: start;
-                  pixel-size: 200;
-                  margin-top: 5;
-                  margin-bottom: 5;
-                  margin-start: 5;
-                  margin-end: 5;
+                  margin-end: 20;
+                  width-request: 160;
+                  height-request: 220;
               }
               Box {
-                halign: start;
-                hexpand: true;
+                halign: fill;
+                vexpand: true;
                 orientation: vertical;
                 ToggleButton favourite_button {
                   margin-top: 10;
                   halign: start;
                   icon-name: "heart-outline-thick-symbolic";
                   styles [
-                    "accent"
+                    "suggested-action",
+                    "favourite-button"
                   ]
                 }
 
@@ -96,10 +96,9 @@ template $RonajoShowPage : Adw.NavigationPage {
                   }
 
                   FlowBox genres {
-                    hexpand: true;
                     row-spacing: 5;
                     column-spacing: 5;
-                    homogeneous: false;
+                    homogeneous: true;
                     selection-mode: none;
                     orientation: horizontal;
                   }

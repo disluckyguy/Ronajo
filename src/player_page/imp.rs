@@ -1,7 +1,9 @@
 use crate::core::player_data::PlayerData;
+use crate::core::show_data::*;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{gio, glib};
+use crate::runtime;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::TemplateChild;
@@ -18,6 +20,16 @@ pub struct RonajoPlayerPage {
     #[property(get, set, name="password" ,type = String, nullable, construct, member = password)]
     #[property(get, set, name="use-key" ,type = bool, construct, member = use_key)]
     pub data: RefCell<PlayerData>,
+    #[property(get, set, construct)]
+    pub allanime_id: RefCell<String>,
+    #[property(get, set, construct)]
+    pub title: RefCell<String>,
+    #[property(get, set, construct)]
+    pub episode_number: Cell<u32>,
+    #[property(get, set, construct)]
+    pub total_episodes: Cell<u32>,
+    #[property(get, set, construct)]
+    pub translation: RefCell<String>,
     #[property(get, set, construct, default = 100f64)]
     pub volume: Cell<f64>,
     #[property(get, set, construct, default = 1f64)]
@@ -29,11 +41,13 @@ pub struct RonajoPlayerPage {
     #[property(get, set, construct)]
     pub position: Cell<f64>,
     #[property(get, set, construct)]
-    pub url: RefCell<String>,
-    #[property(get, set, construct)]
     pub player: RefCell<String>,
     #[template_child]
     pub stack: TemplateChild<gtk::Stack>,
+    #[template_child]
+    pub title_label: TemplateChild<gtk::Label>,
+    #[template_child]
+    pub episode_label: TemplateChild<gtk::Label>,
     #[template_child]
     pub play_button: TemplateChild<gtk::ToggleButton>,
     #[template_child]
@@ -84,11 +98,21 @@ impl ObjectImpl for RonajoPlayerPage {
         let (sender, receiver) = async_channel::bounded(1);
         let data = obj.data();
         let player = obj.player();
-        let url = obj.url();
-        gio::spawn_blocking(move || {
-            sender.send_blocking(false).expect("thread must be open");
-            data.start_session(&url, &player).expect("failed to start session");
-            sender.send_blocking(true).expect("thread must be open");
+        let allanime_id = obj.allanime_id();
+        let translation = obj.translation();
+        let episode_number = obj.episode_number();
+        runtime().spawn(
+        async move  {
+            sender
+                .send(false)
+                .await
+                .expect("thread must be open");
+            let uri = api_get_episode(allanime_id, translation, episode_number).await.expect("failed to get episode");
+            data.start_session(&uri, &player).expect("failed to start session");
+            sender
+                .send(true)
+                .await
+                .expect("thread must be open");
         });
 
         glib::spawn_future_local(glib::clone!(

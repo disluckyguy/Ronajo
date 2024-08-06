@@ -17,7 +17,7 @@ pub struct ShowData {
     pub allanime_id: Option<String>,
     pub title: String,
     pub title_english: Option<String>,
-    pub rating: String,
+    pub rating: Option<String>,
     pub status: String,
     pub dub_episodes: u32,
     pub sub_episodes: u32,
@@ -89,7 +89,7 @@ pub struct JikanData {
     pub title: String,
     pub title_english: Option<String>,
     pub status: String,
-    pub rating: String,
+    pub rating: Option<String>,
     pub synopsis: Option<String>,
     pub studios: Vec<StudioData>,
     pub images: ImageData,
@@ -359,13 +359,14 @@ pub async fn jikan_search(name: String) -> Result<Vec<JikanData>, Box<dyn Error>
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .send()
-        .await
-        .unwrap()
+        .await?
         .text()
-        .await;
+        .await?;
 
-    let result: serde_json::Value = serde_json::from_str(&resp.unwrap())?;
+
+    let result: serde_json::Value = serde_json::from_str(&resp)?;
     let data_value = result.get("data").expect("failed to get data");
+
     let jikan_data: Vec<JikanData> = serde_json::from_value(data_value.clone())?;
     Ok(jikan_data)
 }

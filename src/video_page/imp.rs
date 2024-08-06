@@ -46,6 +46,10 @@ pub struct RonajoVideoPage {
     #[template_child]
     pub fullscreen_button: TemplateChild<gtk::ToggleButton>,
     #[template_child]
+    pub title_label: TemplateChild<gtk::Label>,
+    #[template_child]
+    pub episode_label: TemplateChild<gtk::Label>,
+    #[template_child]
     pub play_button: TemplateChild<gtk::ToggleButton>,
     #[template_child]
     pub lock_ui_button: TemplateChild<gtk::ToggleButton>,
@@ -74,7 +78,15 @@ pub struct RonajoVideoPage {
 
     //properties
     #[property(get, set, construct)]
-    pub uri: RefCell<String>,
+    pub allanime_id: RefCell<String>,
+    #[property(get, set, construct)]
+    pub title: RefCell<String>,
+    #[property(get, set, construct)]
+    pub episode_number: Cell<u32>,
+    #[property(get, set, construct)]
+    pub total_episodes: Cell<u32>,
+    #[property(get, set, construct)]
+    pub translation: RefCell<String>,
     #[property(get, set, default = 1f64, minimum = 0.25, maximum = 2f64, construct)]
     pub rate: Cell<f64>,
     #[property(get, set, default = false, construct)]

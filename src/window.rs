@@ -141,7 +141,9 @@ impl RonajoWindow {
             .expect("Could not get parameter.")
             .get::<String>()
             .expect("The variant needs to be of type `String`.");
-        let video_page = RonajoVideoPage::new(parameter);
+
+        let data: VideoData = serde_json::from_str(&parameter).expect("failed to deserialize");
+        let video_page = RonajoVideoPage::new(&data.allanime_id, &data.title, data.episode_number, &data.translation, data.total_episodes);
 
 
 
@@ -155,12 +157,10 @@ impl RonajoWindow {
             .get::<String>()
             .expect("The variant needs to be of type `String`.");
 
-        let value: serde_json::Value = serde_json::from_str(&parameter).expect("failed to parse");
-        let data: PlayerData = serde_json::from_value(value.get("data").unwrap().clone()).expect("failed to parse");
-        let url: String = serde_json::from_value(value.get("url").unwrap().clone()).expect("failed to parse");
+        let data: RemoteVideoData = serde_json::from_str(&parameter).expect("failed to parse");
         let player: String = self.settings().get("player");
 
-        if !data.use_key {
+        if !data.device_data.use_key {
             let entry = adw::PasswordEntryRow::builder()
                 .title("password")
                 .build();
@@ -186,8 +186,6 @@ impl RonajoWindow {
             #[strong]
             data,
             #[strong]
-            url,
-            #[strong]
             player,
             #[weak]
             view,
@@ -197,16 +195,16 @@ impl RonajoWindow {
             move |_, response| {
                 if response == "continue" {
                     let mut data = data.clone();
-                    data.password = Some(entry.text().to_string());
-                    let player_page = RonajoPlayerPage::new(&data, &url, &player);
+                    data.device_data.password = Some(entry.text().to_string());
+                    let player_page = RonajoPlayerPage::new(&data.device_data, &data.video_data, &player);
                     view.push(&player_page);
                 }
             }));
             alert_dialog.present(Some(self));
         } else {
             let mut data = data.clone();
-            data.password = None;
-            let player_page = RonajoPlayerPage::new(&data, &url, &player);
+            data.device_data.password = None;
+            let player_page = RonajoPlayerPage::new(&data.device_data, &data.video_data, &player);
             view.push(&player_page);
         }
 
@@ -319,17 +317,15 @@ impl RonajoWindow {
                     .query_duration::<gst::ClockTime>()
                     .expect("failed to get duration");
                 if seek_time.seconds() > duration.seconds() {
-                    playbin
+                    let _ = playbin
                         .seek_simple(
                             gst::SeekFlags::FLUSH,
                             duration.sub(gst::ClockTime::from_seconds(1)),
-                        )
-                        .expect("failed to seek");
+                        );
                     return;
                 }
-                playbin
-                    .seek_simple(gst::SeekFlags::FLUSH, seek_time)
-                    .expect("failed to seek");
+                let _ = playbin
+                    .seek_simple(gst::SeekFlags::FLUSH, seek_time);
             };
         };
     }
@@ -343,14 +339,12 @@ impl RonajoWindow {
                 let seek_time = stream_time.overflowing_sub(gst::ClockTime::from_seconds(10));
 
                 if seek_time.1 {
-                    playbin
-                        .seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(0))
-                        .expect("failed to seek");
+                    let _ = playbin
+                        .seek_simple(gst::SeekFlags::FLUSH, gst::ClockTime::from_seconds(0));
                     return;
                 }
-                playbin
-                    .seek_simple(gst::SeekFlags::FLUSH, seek_time.0)
-                    .expect("failed to seek");
+                let _ = playbin
+                    .seek_simple(gst::SeekFlags::FLUSH, seek_time.0);
             };
         };
     }
@@ -489,7 +483,7 @@ impl RonajoWindow {
     }
 
     fn setup_settings(&self) {
-        let settings = Settings::new("io.github.ronajo");
+        let settings = Settings::new("io.github.Ronajo");
         self.imp()
             .settings
             .set(settings)
@@ -530,7 +524,6 @@ impl RonajoWindow {
                 #[weak]
                 filter_model,
                 move |_, _| {
-                    println!("changed");
 
                     filter_model.set_filter(window.filter().as_ref());
                 }
@@ -562,8 +555,6 @@ impl RonajoWindow {
             runtime().spawn(glib::clone!(
                 #[strong]
                 text,
-                #[strong]
-                sender,
                 async move {
                     sender.send(None)
                         .await
@@ -850,22 +841,20 @@ impl RonajoWindow {
         // Get filter_state from settings
         let filter_state: String = self.settings().get("filter");
 
-        println!("{}", filter_state);
-
         // Create custom filters
         let filter_nsfw = gtk::CustomFilter::new(|obj| {
             let show_object = obj
                 .downcast_ref::<ShowObject>()
                 .expect("The object needs to be of type `ShowObject`.");
 
-            !show_object.is_adult()
+            !(show_object.is_ecchi() || show_object.is_adult())
         });
         let filter_sfw_with_ecchi = gtk::CustomFilter::new(|obj| {
             let show_object = obj
                 .downcast_ref::<ShowObject>()
                 .expect("The object needs to be of type `ShowObject`.");
 
-            !(show_object.is_ecchi() || show_object.is_adult())
+            !show_object.is_adult()
         });
 
         // Return the correct filter
@@ -878,5 +867,16 @@ impl RonajoWindow {
         }
     }
 }
-
-
+#[derive(Clone, Default, serde::Deserialize)]
+pub struct RemoteVideoData {
+    pub video_data: VideoData,
+    device_data: PlayerData
+}
+#[derive(Clone, Default, serde::Deserialize)]
+pub struct VideoData {
+    pub allanime_id: String,
+    pub title: String,
+    pub episode_number: u32,
+    pub translation: String,
+    pub total_episodes: u32,
+}

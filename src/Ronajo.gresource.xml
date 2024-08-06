@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/io/github/ronajo">
+  <gresource prefix="/io/github/Ronajo">
 
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
     <file>gtk/styles.css</file>
@@ -35,6 +35,9 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/left-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/computer-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/edit-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/screenshooter-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/cross-small-circle-outline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/emblems/anime-symbolic.svg</file>
 
 
   </gresource>

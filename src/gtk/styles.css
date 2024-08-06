@@ -13,3 +13,13 @@
     background-color: alpha(mix(black, white, .15), .65);
 }
 
+.favourite-button {
+  --accent-bg-color: var(--red-1);
+  --accent-fg-color: var(--light-2);
+}
+
+.genre {
+  background-color: var(--accent-bg-color);
+  color: var(--accent-fg-color);
+}
+

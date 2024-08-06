@@ -15,7 +15,7 @@ pub struct RonajoShowPage {
     #[template_child]
     pub page_stack: TemplateChild<gtk::Stack>,
     #[template_child]
-    pub image: TemplateChild<gtk::Image>,
+    pub picture: TemplateChild<gtk::Picture>,
     #[template_child]
     pub genres: TemplateChild<gtk::FlowBox>,
     #[template_child]
@@ -77,7 +77,6 @@ impl ObjectImpl for RonajoShowPage {
     fn constructed(&self) {
         let obj = self.obj();
         obj.setup_episodes();
-        obj.setup_factory();
         obj.setup_bindings();
     }
 }

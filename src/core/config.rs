@@ -7,7 +7,7 @@ use std::io::Write;
 use super::player_data::PlayerData;
 
 pub fn change_config_path(path: String) {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let old_path = if settings.string("config-path") == "Home" {
         home::home_dir()
         .expect("failed to get home dir")
@@ -23,7 +23,7 @@ pub fn change_config_path(path: String) {
 }
 
 pub fn setup_config() {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let path = if settings.string("config-path") == "Home" {
         home::home_dir()
             .expect("failed to get home dir")
@@ -41,7 +41,7 @@ pub fn setup_config() {
 }
 
 pub fn library_path() -> String {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let path = if settings.string("config-path") == "Home" {
         home::home_dir()
             .expect("failed to get home dir")
@@ -55,7 +55,7 @@ pub fn library_path() -> String {
 }
 
 pub fn notes_path() -> String {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let path = if settings.string("config-path") == "Home" {
         home::home_dir()
             .expect("failed to get home dir")
@@ -69,7 +69,7 @@ pub fn notes_path() -> String {
 }
 
 pub fn ratings_path() -> String {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let path = if settings.string("config-path") == "Home" {
         home::home_dir()
             .expect("failed to get home dir")
@@ -83,7 +83,7 @@ pub fn ratings_path() -> String {
 }
 
 pub fn devices_path() -> String {
-    let settings = gio::Settings::new("io.github.ronajo");
+    let settings = gio::Settings::new("io.github.Ronajo");
     let path = if settings.string("config-path") == "Home" {
         home::home_dir()
             .expect("failed to get home dir")

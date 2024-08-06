@@ -35,11 +35,13 @@ impl RonajoShowPage {
     pub fn bind_show_data(&self, data: &ShowData) {
         self.imp().data.replace(Some(data.clone()));
 
+        self.setup_factory();
+
         let title_label = self.imp().title_label.get();
         let rating_label = self.imp().rating_label.get();
         let rating_row = self.imp().rating_row.get();
         let studio_label = self.imp().studio_label.get();
-        let image = self.imp().image.get();
+        let picture = self.imp().picture.get();
         let description_label = self.imp().description_label.get();
         let notes_text = self.imp().notes_text.get();
         let status_label = self.imp().status_label.get();
@@ -61,17 +63,19 @@ impl RonajoShowPage {
             self.imp().expand_button.set_visible(false);
         };
 
-        rating_label.set_label(&data.rating);
+        if let Some(rating) = &data.rating {
+            rating_label.set_label(rating);
+            let rating_words = rating.split_whitespace().collect::<Vec<&str>>();
 
-        let rating_words = &data.rating.split_whitespace().collect::<Vec<&str>>();
-
-        if rating_words[0] == "G" || rating_words[0] == "PG" {
-            rating_label.add_css_class("success");
-        } else if rating_words[0] == "PG-13" || rating_words[0] == "R" {
-            rating_label.add_css_class("warning");
-        } else if rating_words[0] == "PG-13" || rating_words[0] == "R" {
-            rating_label.add_css_class("error");
+            if rating_words[0] == "R+" || rating_words[0] == "Rx" {
+                rating_label.add_css_class("warning");
+            }
+        } else {
+            rating_label.set_label("Unknown Rating");
         }
+
+
+
 
         if let Some(title) = data.title_english.as_ref() {
             self.set_title(title);
@@ -120,11 +124,11 @@ impl RonajoShowPage {
         ));
         glib::spawn_future_local(glib::clone!(
             #[weak]
-            image,
+            picture,
             async move {
                 while let Ok(data) = receiver.recv().await {
                     let texture = gdk::Texture::from_bytes(&data).expect("failed to make texture");
-                    image.set_paintable(Some(&texture));
+                    picture.set_paintable(Some(&texture));
                 }
             }
         ));
@@ -260,9 +264,8 @@ impl RonajoShowPage {
 
     pub fn add_genre(&self, name: &str) {
         let card = gtk::FlowBoxChild::new();
-        card.add_css_class("background");
+        card.add_css_class("genre");
         let label = gtk::Label::new(Some(name));
-        label.add_css_class("accent");
         label.add_css_class("caption-heading");
 
         card.set_child(Some(&label));
@@ -308,6 +311,8 @@ impl RonajoShowPage {
         });
 
         factory.connect_bind(glib::clone!(
+        #[strong(rename_to = data)]
+        self.data(),
         #[weak(rename_to = remote_play_row)]
         self.imp().remote_play_row,
         #[weak(rename_to = device_row)]
@@ -337,63 +342,48 @@ impl RonajoShowPage {
             episode_object,
             #[weak]
             remote_play_row,
+            #[weak]
+            device_row,
+            #[strong]
+            data,
             move |_| {
                 let id = episode_object.allanime_id().expect("failed to get id");
                 let translation = episode_object.translation();
                 let number = episode_object.number();
-                let (sender, receiver) = async_channel::bounded(1);
-                runtime().spawn(glib::clone!(
-            #[strong]
-            sender,
-            #[strong]
-            id,
-            #[strong]
-            translation,
-            #[strong]
-            number,
-            async move {
+                let total_episodes = if &translation.to_lowercase() == "sub" {
+                    data.sub_episodes
+                } else {
+                    data.dub_episodes
+                };
+                let title = if let Some(title) = &data.title_english {
+                    title
+                } else {
+                    &data.title
+                };
 
-                let data = api_get_episode(id, translation, number).await.expect("failed to search");
-                sender.send(data).await.expect("thread must be open");
-            }
-        ));
-        glib::spawn_future_local(glib::clone!(
-            #[weak]
-            episode_row,
-            #[strong(rename_to = remote_play)]
-            remote_play_row.enables_expansion(),
-            #[weak]
-            device_row,
-            async move {
-                while let Ok(data) = receiver.recv().await {
-                    if remote_play {
-                        let selected_item = device_row.selected_item().expect("failed to get selected item");
-                        let device_object = selected_item
-                            .downcast_ref::<gtk::StringObject>()
-                            .expect("Object must be String Object");
-                        let device_name = device_object.string().to_string();
+                let json = serde_json::json!({
+                    "allanime_id": id,
+                    "title": title,
+                    "translation": translation,
+                    "episode_number": number,
+                    "total_episodes": total_episodes
+                });
 
-                        let device_data = get_device(device_name).expect("failed to get device");
-
-
-                        let json = serde_json::json!({
-                            "data": &device_data,
-                            "url": &data
-                        });
-
-                        episode_row.activate_action("win.play-remote-video", Some(&json.to_string().to_variant()))
-                            .expect("The action does not exist.");
-
-                    } else {
-                        episode_row.activate_action("win.play-video", Some(&data.to_variant()))
-                            .expect("The action does not exist.");
-                    }
-
-
+                if remote_play_row.enables_expansion() {
+                    let selected_item = device_row.selected_item().expect("failed to get selected item");
+                    let string_object = selected_item
+                        .downcast_ref::<gtk::StringObject>()
+                        .expect("object must be StringObject");
+                    let device = string_object.string().to_string();
+                    let data = get_device(device).expect("failed to get device");
+                    let paramter = serde_json::json!({
+                        "device_data": data,
+                        "video_data": json
+                    });
+                    episode_row.activate_action("win.play-remote-video", Some(&paramter.to_string().to_variant())).expect("action does not exist");
+                } else {
+                    episode_row.activate_action("win.play-video", Some(&json.to_string().to_variant())).expect("action does not exist");
                 }
-            }
-        ));
-
             }));
 
         }));

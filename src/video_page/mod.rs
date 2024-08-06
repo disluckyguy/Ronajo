@@ -5,9 +5,11 @@ use adw::{self, gdk, glib};
 use glib::Object;
 use gst::prelude::*;
 use gtk;
+use crate::runtime;
 use std::cell::RefCell;
 use std::ops::Add;
 use std::time::Instant;
+use crate::core::show_data::*;
 mod imp;
 
 glib::wrapper! {
@@ -17,9 +19,13 @@ glib::wrapper! {
 }
 
 impl RonajoVideoPage {
-    pub fn new(uri: String) -> Self {
+    pub fn new(allanime_id: &str, title: &str, episode_number: u32, translation: &str, total_episodes: u32) -> Self {
         Object::builder()
-            .property("uri", uri)
+            .property("allanime_id", allanime_id)
+            .property("title", title)
+            .property("translation", translation)
+            .property("episode_number", episode_number)
+            .property("total_episodes", total_episodes)
             .build()
     }
 
@@ -104,15 +110,11 @@ impl RonajoVideoPage {
     }
 
     pub fn setup_stream(&self) {
+
         let sink = gst::ElementFactory::make("gtk4paintablesink")
             .build()
             .expect("failed to make paintable sink");
-
         let playbin = gst::ElementFactory::make("playbin")
-            .property(
-                "uri",
-                self.uri(),
-            )
             .property("video-sink", &sink)
             .build()
             .expect("failed to make playbin");
@@ -122,7 +124,71 @@ impl RonajoVideoPage {
         self.imp().picture.set_paintable(Some(&paintable));
 
         self.imp().playbin.replace(Some(playbin));
+
         self.imp().sink.replace(Some(sink));
+
+        let (sender, receiver) = async_channel::bounded(1);
+        // Connect to "clicked" signal of `button`
+        runtime().spawn(glib::clone!(
+            #[strong(rename_to = id)]
+            self.allanime_id(),
+            #[strong(rename_to = translation)]
+            self.translation(),
+            #[strong(rename_to = episode_number)]
+            self.episode_number(),
+            #[strong]
+            sender,
+            async move {
+                sender
+                    .send(None)
+                    .await
+                    .expect("The channel needs to be open.");
+                let uri = api_get_episode(id, translation, episode_number).await.expect("failed to get episode");
+                sender
+                    .send(Some(uri))
+                    .await
+                    .expect("The channel needs to be open.");
+            }
+        ));
+
+    // The main loop executes the asynchronous block
+    glib::spawn_future_local(glib::clone!(
+        #[weak(rename_to = page)]
+        self,
+        #[weak(rename_to = video_slider)]
+        self.imp().video_slider,
+        #[weak(rename_to = play_button)]
+        self.imp().play_button,
+        #[weak(rename_to = seek_forward)]
+        self.imp().seek_forward,
+        #[weak(rename_to = seek_backward)]
+        self.imp().seek_backward,
+        async move {
+
+            while let Ok(response) = receiver.recv().await {
+                if let Some(uri) = response {
+                    let playbin = page.playbin();
+                     playbin.set_state(gst::State::Ready)
+                         .expect("failed to set playbin to Null state");
+                     playbin.set_property("uri", uri);
+
+                     playbin.set_state(gst::State::Playing)
+                         .expect("failed to set playbin to playing state");
+                    video_slider.set_sensitive(true);
+                    play_button.set_sensitive(true);
+                    seek_forward.set_sensitive(true);
+                    seek_backward.set_sensitive(true);
+                } else {
+                    video_slider.set_sensitive(false);
+                    play_button.set_sensitive(false);
+                    seek_forward.set_sensitive(false);
+                    seek_backward.set_sensitive(false);
+                }
+
+            }
+    }));
+
+
         self.imp().prev_xy.replace((0f64, 0f64));
         self.imp()
             .prev_pos
@@ -215,16 +281,11 @@ impl RonajoVideoPage {
 
         let bus = playbin.bus().unwrap();
 
-        playbin
-            .set_state(gst::State::Playing)
-            .expect("Unable to set the playbin to the `Playing` state");
-
         let page_weak = self.downgrade();
 
         let bus_watch = bus
             .add_watch_local(move |_, msg| {
                 use gst::MessageView;
-                println!("{:?}", msg.view());
 
                 match msg.view() {
 
@@ -371,13 +432,11 @@ impl RonajoVideoPage {
 
         self.connect_paused_notify(move |page| {
             if page.paused() {
-                page.playbin()
-                    .set_state(gst::State::Paused)
-                    .expect("failed to set playbin state to paused");
+                let _ = page.playbin()
+                    .set_state(gst::State::Paused);
             } else {
-                page.playbin()
-                    .set_state(gst::State::Playing)
-                    .expect("failed to set playbin state to playing");
+                let _ = page.playbin()
+                    .set_state(gst::State::Playing);
             }
         });
 
@@ -513,6 +572,17 @@ impl RonajoVideoPage {
                 Some(new_volume)
 
             })
+            .sync_create()
+            .build();
+
+        self.bind_property("episode_number", &imp.episode_label.get(), "label")
+            .transform_to(move |_, episode_number: u32| {
+                Some(format!("Episode {}", episode_number).to_value())
+            })
+            .sync_create()
+            .build();
+
+        self.bind_property("title", &imp.title_label.get(), "label")
             .sync_create()
             .build();
 

@@ -17,11 +17,17 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
           subtitle: "Please only enable this if you are over 18 years old.";
         }
         Adw.SwitchRow enable_ecchi {
-          title: "Allow Ecchi Shows";
+          title: "Allow Mild NSFW Shows";
           sensitive: bind enable_nsfw.active inverted;
         }
         Adw.SwitchRow filter_library {
           title: "Apply Filter for Library";
+        }
+        Adw.ComboRow player {
+          title: "Remote Player";
+          model: StringList {
+            strings ["MPV", "VLC"]
+          };
         }
         Adw.ActionRow change_config_row {
           title: "Configs Location";

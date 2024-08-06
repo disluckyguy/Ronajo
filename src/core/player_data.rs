@@ -67,7 +67,7 @@ impl PlayerData {
                 channel
                     .exec(
                         &format!(
-                            "systemd-run --user --scope --unit=mpv-session --setenv=DISPLAY=:0 nohup setsid vlc {} --no-terminal > /dev/null 2>&1 &",
+                            "systemd-run --user --scope --unit=vlc-session --setenv=DISPLAY=:0 nohup setsid vlc {} > /dev/null 2>&1 &",
                             url
                         )
                 )?;
@@ -79,7 +79,7 @@ impl PlayerData {
                     channel
                         .exec(
                             &format!(
-                                "systemd-run --user --scope --unit=vlc-session --setenv=DISPLAY=:0 nohup setsid flatpak run org.videolan.VLC {} --no-terminal > /dev/null 2>&1 &",
+                                "systemd-run --user --scope --unit=vlc-session --setenv=DISPLAY=:0 nohup setsid flatpak run org.videolan.VLC {}  > /dev/null 2>&1 &",
                                 url
                             )
                     )?;
@@ -291,9 +291,10 @@ impl PlayerData {
                 let mut output = String::new();
                 channel.read_to_string(&mut output)?;
                 let output_words: Vec<&str> = output.split_whitespace().collect();
-                let length_index = output_words.iter().position(|&r| r == "mpris:length").expect("field not found");
+                let length_index = output_words.iter().position(|&r| r.contains("mpris:length")).expect("field not found");
+
                 let duration: f64 = output_words[length_index + 2].parse()?;
-                duration / 10000f64
+                duration / 1000000f64
             }
             _ => unreachable!()
         };
@@ -324,7 +325,7 @@ impl PlayerData {
                 channel.read_to_string(&mut output)?;
                 let output_words: Vec<&str> = output.split_whitespace().collect();
                 let position: f64 = output_words[1].parse()?;
-                position / 10000f64
+                position / 1000000f64
             }
             _ => unreachable!()
         };
@@ -345,7 +346,7 @@ impl PlayerData {
             }
             "VLC" => {
                 channel
-                    .exec(&format!("busctl --user call org.mpris.MediaPlayer2.vlc -- /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player Seek x {}", 10 * 10000))?;
+                    .exec(&format!("busctl --user call org.mpris.MediaPlayer2.vlc -- /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player Seek x {}", 10 * 1000000))?;
             }
             _ => unreachable!()
         }
@@ -364,7 +365,7 @@ impl PlayerData {
             }
             "VLC" => {
                 channel
-                    .exec(&format!("busctl --user call org.mpris.MediaPlayer2.vlc -- /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player Seek x {}", -10 * 10000))?;
+                    .exec(&format!("busctl --user call org.mpris.MediaPlayer2.vlc -- /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player Seek x {}", -10 * 1000000))?;
             }
             _ => unreachable!()
         }
@@ -390,15 +391,24 @@ impl PlayerData {
                 let mut output = String::new();
                 channel.read_to_string(&mut output)?;
                 let output_words: Vec<&str> = output.split_whitespace().collect();
-                let id_index = output_words.iter().position(|&r| r == "mpris:trackid");
+                let id_index = output_words.iter().position(|&r| r.contains("mpris:trackid"));
                 let track_id: &str = if let Some(index) = id_index {
                     output_words[index + 2]
                 } else {
                     "/"
                 };
 
+                channel.close()?;
+
+                let mut channel = session.channel_session()?;
+
                 channel
-                    .exec(&format!("dbus-send --session --dest=org.mpris.MediaPlayer2.vlc --type=method_call /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.SetPosition objpath:{} int64:0", track_id))?;
+                    .exec(&format!("dbus-send --session --dest=org.mpris.MediaPlayer2.vlc --type=method_call /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.SetPosition objpath:{} int64:{}", track_id, position as i64 * 1000000))?;
+
+                let mut output = String::new();
+                channel.read_to_string(&mut output)?;
+                println!("{}", output);
+
             }
             _ => unreachable!()
         }

@@ -106,14 +106,31 @@ template $RonajoVideoPage: Adw.NavigationPage {
                 }
 
                 [center]
-                Label {
-                  halign: center;
-                  label: "Big Buck Bunny";
-                  styles [
-                    "header"
-                  ]
+                Box {
                   hexpand: true;
+                  halign: center;
+                  orientation: horizontal;
+                  spacing: 5;
+                  Label title_label {
+
+                    label: "Unknown";
+                    styles [
+                      "header"
+                    ]
+
+                  }
+                  Separator {
+                    orientation: vertical;
+                  }
+                  Label episode_label {
+                    label: "Episode N/A";
+                    styles [
+                      "header"
+                    ]
+                  }
+
                 }
+
 
                 [end]
                 Box {

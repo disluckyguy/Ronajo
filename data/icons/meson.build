@@ -1,4 +1,4 @@
-application_id = 'io.github.ronajo'
+application_id = 'io.github.Ronajo'
 
 scalable_dir = 'hicolor' / 'scalable' / 'apps'
 install_data(

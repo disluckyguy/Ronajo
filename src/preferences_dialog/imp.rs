@@ -18,6 +18,8 @@ pub struct RonajoPreferencesDialog {
     pub enable_ecchi: TemplateChild<adw::SwitchRow>,
     #[template_child]
     pub filter_library: TemplateChild<adw::SwitchRow>,
+    #[template_child]
+    pub player: TemplateChild<adw::ComboRow>,
     pub settings: OnceCell<gio::Settings>
 }
 
@@ -55,9 +57,6 @@ impl ObjectImpl for RonajoPreferencesDialog {
         obj.settings()
             .bind("filter-library", &self.filter_library.get(), "active")
             .build();
-
-
-
     }
 }
 

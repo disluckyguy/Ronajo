@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'io.github.ronajo.desktop.in',
-       output: 'io.github.ronajo.desktop',
+        input: 'io.github.Ronajo.desktop.in',
+       output: 'io.github.Ronajo.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'io.github.ronajo.metainfo.xml.in',
-       output: 'io.github.ronajo.metainfo.xml',
+        input: 'io.github.Ronajo.metainfo.xml.in',
+       output: 'io.github.Ronajo.metainfo.xml',
        po_dir: '../po',
       install: true,
   install_dir: get_option('datadir') / 'metainfo'
@@ -24,7 +24,7 @@ appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate appstream file', appstreamcli,
      args: ['validate', '--no-net', '--explain', appstream_file])
 
-install_data('io.github.ronajo.gschema.xml',
+install_data('io.github.Ronajo.gschema.xml',
   install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
 )
 

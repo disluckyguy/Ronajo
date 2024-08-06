@@ -71,7 +71,7 @@ fn main() -> glib::ExitCode {
     // Create a new GtkApplication. The application manages our main loop,
     // application windows, integration with the window manager/compositor, and
     // desktop features such as file opening and single-instance applications.
-    let app = RonajoApplication::new("io.github.ronajo", &gio::ApplicationFlags::empty());
+    let app = RonajoApplication::new("io.github.Ronajo", &gio::ApplicationFlags::empty());
 
     // Run the application. This function will block until the application
     // exits. Upon return, we have our exit code to return to the shell. (This
@@ -81,7 +81,6 @@ fn main() -> glib::ExitCode {
 
     unsafe {
         gst::deinit();
-        println!("deinitialized");
     }
 
     res

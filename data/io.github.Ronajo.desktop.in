@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=ronajo
 Exec=ronajo
-Icon=io.github.ronajo
+Icon=io.github.Ronajo
 Terminal=false
 Type=Application
 Categories=GTK;

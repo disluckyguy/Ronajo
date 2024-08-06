@@ -19,7 +19,7 @@ impl RonajoPreferencesDialog {
     }
 
     fn setup_settings(&self) {
-        let settings = gio::Settings::new("io.github.ronajo");
+        let settings = gio::Settings::new("io.github.Ronajo");
         self.imp()
             .settings
             .set(settings)
@@ -37,6 +37,17 @@ impl RonajoPreferencesDialog {
         let imp = self.imp();
 
         let filter: String = self.settings().get("filter");
+        let player: String = self.settings().get("player");
+
+        match player.as_str() {
+            "MPV" => {
+                imp.player.set_selected(0);
+            }
+            "VLC" => {
+                imp.player.set_selected(1);
+            }
+            _ => unreachable!()
+        };
 
         match filter.as_str() {
             "nsfw" => {
@@ -94,5 +105,22 @@ impl RonajoPreferencesDialog {
                 }
         }));
 
+        imp.player.connect_selected_item_notify(glib::clone!(
+            #[weak(rename_to = settings)]
+            self.settings(),
+            move |row| {
+                let selected_item = row.selected_item().expect("no item selected");
+
+                let object = selected_item
+                    .downcast_ref::<gtk::StringObject>()
+                    .expect("object must be StringObject");
+
+                let player = object.string();
+
+
+                settings.set_string("player", &player).expect("failed to set setting");
+        }));
+
     }
 }
+

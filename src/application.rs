@@ -48,7 +48,7 @@ mod imp {
             obj.set_accels_for_action("app.quit", &["<primary>q"]);
             obj.connect_startup(move |_| {
                 let provider = gtk::CssProvider::new();
-                provider.load_from_resource("/io/github/ronajo/gtk/styles.css");
+                provider.load_from_resource("/io/github/Ronajo/gtk/styles.css");
 
                 // Add the provider to the default screen
                 gtk::style_context_add_provider_for_display(
@@ -94,13 +94,13 @@ mod imp {
 
 
 
-            application.connect_shutdown(glib::clone!(
-                #[weak]
-                window,
-                move |_| {
-                    window.close();
-                }
-            ));
+            // application.connect_shutdown(glib::clone!(
+            //     #[weak]
+            //     window,
+            //     move |_| {
+            //         window.close();
+            //     }
+            // ));
         }
     }
 

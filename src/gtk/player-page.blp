@@ -7,8 +7,18 @@ template $RonajoPlayerPage : Adw.NavigationPage {
     Adw.ToolbarView {
       [top]
       Adw.HeaderBar header_bar {
-        title-widget: Label title_label {
-          label: "unknown";
+        title-widget: Box {
+          orientation: horizontal;
+          spacing: 5;
+          Label title_label {
+            label: "Unknown";
+          }
+          Separator {
+            orientation: vertical;
+          }
+          Label episode_label {
+            label: "Episdoe N/A";
+          }
         };
       }
     content: Stack stack {
@@ -160,11 +170,6 @@ template $RonajoPlayerPage : Adw.NavigationPage {
                 Button screenshot_button {
                   hexpand: true;
                   icon-name: "screenshooter-symbolic";
-                }
-
-                Button window_button {
-                  hexpand: true;
-                  icon-name: "move-to-window-symbolic";
                 }
               }
 
