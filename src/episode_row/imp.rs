@@ -9,6 +9,8 @@ use std::cell;
 // #[properties(wrapper_type = super::EpisodeRow)]
 #[template(file = "src/gtk/episode-row.blp")]
 pub struct RonajoEpisodeRow {
+    #[template_child]
+    pub episode_label: TemplateChild<gtk::Label>,
     pub bindings: cell::RefCell<Vec<glib::Binding>>,
 }
 
@@ -16,7 +18,7 @@ pub struct RonajoEpisodeRow {
 impl ObjectSubclass for RonajoEpisodeRow {
     const NAME: &'static str = "RonajoEpisodeRow";
     type Type = super::RonajoEpisodeRow;
-    type ParentType = gtk::Button;
+    type ParentType = gtk::Box;
 
     fn class_init(klass: &mut Self::Class) {
         klass.bind_template();
@@ -37,4 +39,4 @@ impl ObjectImpl for RonajoEpisodeRow {
 
 impl WidgetImpl for RonajoEpisodeRow {}
 
-impl ButtonImpl for RonajoEpisodeRow {}
+impl BoxImpl for RonajoEpisodeRow {}

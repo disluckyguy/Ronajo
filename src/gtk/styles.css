@@ -1,25 +1,23 @@
-
 .transparent_bg {
-  background: transparent;
+    background: transparent;
 }
 
 .window-controls-osd > button > image {
-    color: alpha(white, .9);
-    background-color: alpha(black, .7);
+    color: alpha(white, 0.9);
+    background-color: alpha(black, 0.7);
 }
 
 .window-controls-osd > button > image:hover {
     color: white;
-    background-color: alpha(mix(black, white, .15), .65);
+    background-color: alpha(mix(black, white, 0.15), 0.65);
 }
 
 .favourite-button {
-  --accent-bg-color: var(--red-1);
-  --accent-fg-color: var(--light-2);
+    --accent-bg-color: var(--red-1);
+    --accent-fg-color: var(--light-2);
 }
 
 .genre {
-  background-color: var(--accent-bg-color);
-  color: var(--accent-fg-color);
+    background-color: var(--accent-bg-color);
+    color: var(--accent-fg-color);
 }
-

@@ -36,9 +36,21 @@ impl RonajoPreferencesDialog {
     pub fn setup_callbacks(&self) {
         let imp = self.imp();
 
+        let config_path: String = self.settings().get("config-path");
         let filter: String = self.settings().get("filter");
         let player: String = self.settings().get("player");
         let translation: String = self.settings().get("translation");
+
+
+        match config_path.as_str() {
+            "$HOME/.var/app/io.github.Ronajo" => {
+                imp.config_row.set_selected(0);
+            }
+            "$HOME/.config" => {
+                imp.config_row.set_selected(1);
+            }
+            _ => unreachable!()
+        };
 
         match player.as_str() {
             "MPV" => {
@@ -148,6 +160,22 @@ impl RonajoPreferencesDialog {
                 settings.set_string("translation", &translation.to_lowercase()).expect("failed to set setting");
         }));
 
+        imp.config_row.connect_selected_item_notify(glib::clone!(
+            #[weak(rename_to = settings)]
+            self.settings(),
+            move |row| {
+                let selected_item = row.selected_item().expect("no item selected");
+
+                let object = selected_item
+                    .downcast_ref::<gtk::StringObject>()
+                    .expect("object must be StringObject");
+
+                let config_path = object.string();
+
+
+                change_config_path(config_path.to_string());
+                settings.set_string("config-path", &config_path).expect("failed to set setting");
+        }));
+
     }
 }
-

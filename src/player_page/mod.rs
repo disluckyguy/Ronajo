@@ -242,7 +242,7 @@ impl RonajoPlayerPage {
             #[weak(rename_to = page)]
             self,
             move |_| {
-                page.activate_action("navigation.pop", Some(&"player-page".to_variant())).expect("failed to activate action");
+                page.activate_action("navigation.pop", None).expect("failed to activate action");
             }
         ));
 
@@ -405,5 +405,3 @@ impl RonajoPlayerPage {
 
     }
 }
-
-

@@ -70,6 +70,8 @@ impl DevicesDialog {
         imp.key_auth_button.connect_toggled(glib::clone!(
             #[weak(rename_to = save_button)]
             imp.save_button.get(),
+            #[strong(rename_to = name_row)]
+            imp.name_row.get(),
             #[strong(rename_to = address_row)]
             imp.address_row.get(),
             #[strong(rename_to = username_row)]
@@ -82,15 +84,16 @@ impl DevicesDialog {
                 let address_empty = address_row.text().is_empty();
                 let username_empty = username_row.text().is_empty();
                 let password_empty = password_row.text().is_empty();
+                let name_empty = name_row.text().is_empty();
                 if button.is_active() {
                     empty_password.set_visible(false);
-                    if username_empty || address_empty {
+                    if username_empty || address_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
                     }
                 } else {
-                    if username_empty || address_empty || password_empty {
+                    if username_empty || address_empty || password_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
@@ -106,6 +109,8 @@ impl DevicesDialog {
         imp.password_row.connect_changed(glib::clone!(
             #[weak(rename_to = save_button)]
             imp.save_button.get(),
+            #[strong(rename_to = name_row)]
+            imp.name_row.get(),
             #[strong(rename_to = address_row)]
             imp.address_row.get(),
             #[strong(rename_to = username_row)]
@@ -118,15 +123,16 @@ impl DevicesDialog {
                 let address_empty = address_row.text().is_empty();
                 let username_empty = username_row.text().is_empty();
                 let password_empty = password_row.text().is_empty();
+                let name_empty = name_row.text().is_empty();
                 if key_auth_button.is_active() {
-                    if username_empty || address_empty {
+                    if username_empty || address_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
                     }
                     empty_password.set_visible(false);
                 } else {
-                    if username_empty || address_empty || password_empty {
+                    if username_empty || address_empty || password_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
@@ -142,6 +148,8 @@ impl DevicesDialog {
         imp.username_row.connect_changed(glib::clone!(
             #[weak(rename_to = save_button)]
             imp.save_button.get(),
+            #[strong(rename_to = name_row)]
+            imp.name_row.get(),
             #[strong(rename_to = address_row)]
             imp.address_row.get(),
             #[strong(rename_to = password_row)]
@@ -154,8 +162,9 @@ impl DevicesDialog {
                 let address_empty = address_row.text().is_empty();
                 let username_empty = username_row.text().is_empty();
                 let password_empty = password_row.text().is_empty();
+                let name_empty = name_row.text().is_empty();
                 if key_auth_button.is_active() {
-                    if username_empty || address_empty {
+                    if username_empty || address_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
@@ -163,7 +172,7 @@ impl DevicesDialog {
 
 
                 } else {
-                    if username_empty || address_empty || password_empty {
+                    if username_empty || address_empty || password_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
@@ -177,23 +186,26 @@ impl DevicesDialog {
                 }
         }));
 
-        imp.address_row.connect_changed(glib::clone!(
+        imp.name_row.connect_changed(glib::clone!(
             #[weak(rename_to = save_button)]
             imp.save_button.get(),
-            #[strong(rename_to = username_row)]
-            imp.username_row.get(),
+            #[strong(rename_to = address_row)]
+            imp.address_row.get(),
             #[strong(rename_to = password_row)]
             imp.password_row.get(),
+            #[strong(rename_to =username_row)]
+            imp.username_row.get(),
             #[strong(rename_to = key_auth_button)]
             imp.key_auth_button.get(),
-            #[strong(rename_to = empty_address)]
-            imp.empty_address.get(),
-            move |address_row| {
+            #[strong(rename_to = empty_name)]
+            imp.empty_name.get(),
+            move |name_row| {
                 let address_empty = address_row.text().is_empty();
-                let username_empty = username_row.text().is_empty();
                 let password_empty = password_row.text().is_empty();
+                let username_empty = username_row.text().is_empty();
+                let name_empty = name_row.text().is_empty();
                 if key_auth_button.is_active() {
-                    if username_empty || address_empty {
+                    if username_empty || address_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
@@ -201,56 +213,21 @@ impl DevicesDialog {
 
 
                 } else {
-                    if username_empty || address_empty || password_empty {
+                    if username_empty || address_empty || password_empty || name_empty {
                         save_button.set_sensitive(false);
                     } else {
                         save_button.set_sensitive(true);
                     }
 
                 }
-                if address_empty {
-                    empty_address.set_visible(true);
+                if name_empty {
+                    empty_name.set_visible(true);
                 } else {
-                    empty_address.set_visible(false);
+                    empty_name.set_visible(false);
                 }
-            }));
+        }));
 
-            imp.save_button.connect_clicked(glib::clone!(
-                #[weak(rename_to = name_row)]
-                imp.name_row.get(),
-                #[weak(rename_to = address_row)]
-                imp.address_row.get(),
-                #[weak(rename_to = username_row)]
-                imp.username_row.get(),
-                #[weak(rename_to = password_row)]
-                imp.password_row.get(),
-                #[weak(rename_to = key_auth_button)]
-                imp.key_auth_button.get(),
-                #[weak(rename_to = page)]
-                self,
-                move |button| {
-                    let name = name_row.text().to_string();
-                    let address = address_row.text().to_string();
-                    let username = username_row.text().to_string();
-                    let password = password_row.text().to_string();
-                    let use_key = key_auth_button.is_active();
-
-                    if use_key {
-                        let data = PlayerData::new(name, address, username, None, use_key);
-                        save_device(&data).expect("failed to save");
-                        page.new_device(&data);
-                    } else {
-                        let data = PlayerData::new(name, address, username, Some(password), use_key);
-                        save_device(&data).expect("failed to save");
-                        page.new_device(&data);
-                    }
-
-                    button.activate_action("navigation.pop", None).expect("action does not exist");
-
-                }
-            ));
-
-            let (sender, receiver) = async_channel::bounded(1);
+        let (sender, receiver) = async_channel::bounded(1);
 
 
         imp.save_button.connect_clicked(glib::clone!(
@@ -298,6 +275,8 @@ impl DevicesDialog {
 
 
         glib::spawn_future_local(glib::clone!(
+            #[weak(rename_to = name_row)]
+            imp.name_row.get(),
             #[weak(rename_to = button)]
             imp.save_button.get(),
             #[strong(rename_to = address_row)]
@@ -310,6 +289,8 @@ impl DevicesDialog {
             imp.key_auth_button.get(),
             #[strong(rename_to = toast_overlay)]
             imp.add_device_toast_overlay.get(),
+            #[weak(rename_to = page)]
+            self,
             async move {
                 while let Ok(enable_button) = receiver.recv().await {
                     button.set_sensitive(enable_button.0);
@@ -322,6 +303,7 @@ impl DevicesDialog {
                         let toast = adw::Toast::new(&err);
 
                         match err.trim() {
+                            "failed to lookup address information: Name or service not known" => toast.set_title("Service Unknown"),
                             "failed to lookup address information: Temporary failure in name resolution" => toast.set_title("Couldn't connect to address"),
                             "[Session(-18)] Authentication failed (username/password)" => toast.set_title("Invalid username or password"),
                             "[Session(-42)] failed connecting with agent" => toast.set_title("Agent unavailable"),
@@ -331,6 +313,20 @@ impl DevicesDialog {
                         toast_overlay.add_toast(toast);
                     } else {
                         if enable_button.0 {
+                            let name = name_row.text().to_string();
+                            let address = address_row.text().to_string();
+                            let username = username_row.text().to_string();
+                            let password = password_row.text().to_string();
+                            let use_key = key_auth_button.is_active();
+                            if use_key {
+                                let data = PlayerData::new(name, address, username, None, use_key);
+                                save_device(&data).expect("failed to save");
+                                page.new_device(&data);
+                            } else {
+                                let data = PlayerData::new(name, address, username, Some(password), use_key);
+                                save_device(&data).expect("failed to save");
+                                page.new_device(&data);
+                            }
                             button.activate_action("navigation.pop", None).expect("action doesn't exist");
                         }
                     }

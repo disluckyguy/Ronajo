@@ -1,10 +1,12 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $RonajoEpisodeRow: Button {
-
-  styles [
-    "flat",
-  ]
-  label: "Episode N/A";
+template $RonajoEpisodeRow: Box {
+    margin-top: 10;
+    margin-bottom: 10;
+    hexpand: true;
+    Label episode_label {
+      halign: center;
+      label: "Episode N/A";
+    }
 }

@@ -35,6 +35,8 @@ pub struct DevicesDialog {
     #[template_child]
     pub save_button: TemplateChild<gtk::Button>,
     #[template_child]
+    pub empty_name: TemplateChild<gtk::Label>,
+    #[template_child]
     pub empty_address: TemplateChild<gtk::Label>,
     #[template_child]
     pub empty_username: TemplateChild<gtk::Label>,

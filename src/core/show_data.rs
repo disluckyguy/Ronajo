@@ -42,13 +42,32 @@ impl ShowData {
         show_data.rating = data.rating;
         show_data.in_library = super::config::in_library(data.mal_id);
         let allanime_search = api_search(String::from(&data.title), "sub".to_string()).await.expect("failed to search");
+
         for show in &allanime_search {
-                if show.name.trim().to_lowercase() == data.title.trim().to_lowercase() {
-                    show_data.allanime_id = Some(String::from(&show.id));
-                    show_data.sub_episodes = show.available_episodes.sub;
-                    show_data.dub_episodes = show.available_episodes.dub;
-                    return show_data;
-                }
+            let allanime_name = show.name.trim()
+                .to_lowercase()
+                .replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '[', ']', '-', ' '][..], "")
+                .replace("season", "")
+                .replace("1st", "1")
+                .replace("2nd", "2")
+                .replace("3rd", "3")
+                .replace("4th", "4");
+
+            let mut jikan_name = data.title.trim().to_lowercase().replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '[', ']', ' ', '-'][..], "")
+                .replace("season", "")
+                .replace("1st", "1")
+                .replace("2nd", "2")
+                .replace("3rd", "3")
+                .replace("4th", "4");
+            if jikan_name == "onepiece" {
+                jikan_name = "1p".to_string();
+            }
+            if allanime_name == jikan_name {
+                show_data.allanime_id = Some(String::from(&show.id));
+                show_data.sub_episodes = show.available_episodes.sub;
+                show_data.dub_episodes = show.available_episodes.dub;
+                return show_data;
+            }
         }
 
 
@@ -151,10 +170,11 @@ pub async fn api_search(
     name: String,
     translation: String,
 ) -> Result<Vec<AllanimeData>, Box<dyn Error>> {
-    // let mut easy = Easy::new();
     let query =
     "query(        $search: SearchInput        $limit: Int        $page: Int        $translationType: VaildTranslationTypeEnumType        $countryOrigin: VaildCountryOriginEnumType    ) {    shows(        search: $search        limit: $limit        page: $page        translationType: $translationType        countryOrigin: $countryOrigin    ) {        edges {            _id name availableEpisodes __typename       }    }}";
-    let variables =  format!("{{\"search\":{{\"allowAdult\":{},\"allowUnknown\":false,\"query\":\"{}\"}},\"limit\":40,\"page\":1,\"translationType\":\"{}\",\"countryOrigin\":\"ALL\"}}", true, name, translation);
+    let name = name.trim().to_lowercase().replace(&['(', ')', ',', '\"', '.', ';', ':', '\'', '[', ']'][..], "");
+    let name_encoded: String = form_urlencoded::byte_serialize(name.as_bytes()).collect();
+    let variables =  format!("{{\"search\":{{\"allowAdult\":{},\"allowUnknown\":false,\"query\":\"{}\"}},\"limit\":40,\"page\":1,\"translationType\":\"{}\",\"countryOrigin\":\"ALL\"}}", true, name_encoded, translation);
     let query_encoded: String = form_urlencoded::byte_serialize(query.as_bytes()).collect();
     let variables_encoded: String = form_urlencoded::byte_serialize(variables.as_bytes()).collect();
 
@@ -177,6 +197,7 @@ pub async fn api_search(
         .await?;
 
     let search_value: serde_json::Value = serde_json::from_str(get.trim())?;
+
     let data_value = search_value.get("data").expect("couldn't find edges value");
     let shows_value = data_value.get("shows").expect("couldn't find edges value");
     let edges_value = shows_value.get("edges").expect("couldn't find edges value");
@@ -353,7 +374,7 @@ pub async fn jikan_search(name: String) -> Result<Vec<JikanData>, Box<dyn Error>
     let name_encoded: String = form_urlencoded::byte_serialize(name.as_bytes()).collect();
     let resp = client
         .get(format!(
-            "https://api.jikan.moe/v4/anime?q={}&limit=20&type=tv",
+            "https://api.jikan.moe/v4/anime?q={}&type=tv",
             &name_encoded
         ))
         .header("Content-Type", "application/json")

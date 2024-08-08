@@ -8,8 +8,8 @@ use glib::Object;
 
 glib::wrapper! {
     pub struct RonajoEpisodeRow(ObjectSubclass<imp::RonajoEpisodeRow>)
-    @extends gtk::Button, gtk::Widget, glib::InitiallyUnowned,
-    @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+    @extends gtk::Box, gtk::Widget, glib::InitiallyUnowned,
+    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl RonajoEpisodeRow {
@@ -20,7 +20,7 @@ impl RonajoEpisodeRow {
     pub fn bind(&self, object: &EpisodeObject) {
 
         let mut bindings = Vec::new();
-        let name_binding = object.bind_property("number", self, "label")
+        let name_binding = object.bind_property("number", &self.imp().episode_label.get(), "label")
             .transform_to(move |_, number: u32| {
                 Some(format!("Episode {}", number))
             })

@@ -157,11 +157,12 @@ impl RonajoWindow {
             .get::<String>()
             .expect("The variant needs to be of type `String`.");
 
+        let (sender, receiver) = async_channel::bounded(1);
+
         let data: RemoteVideoData = serde_json::from_str(&parameter).expect("failed to parse");
         let player: String = self.settings().get("player");
 
-        if !data.device_data.use_key {
-            let entry = adw::PasswordEntryRow::builder()
+        let entry = adw::PasswordEntryRow::builder()
                 .title("password")
                 .build();
 
@@ -182,24 +183,46 @@ impl RonajoWindow {
             alert_dialog.add_responses(&[("cancel", "Cancel"),("continue", "Continue")]);
             alert_dialog.set_response_appearance("cancel", adw::ResponseAppearance::Destructive);
             alert_dialog.set_response_appearance("continue", adw::ResponseAppearance::Suggested);
+
             alert_dialog.connect_response(None, glib::clone!(
             #[strong]
             data,
-            #[strong]
-            player,
-            #[weak]
-            view,
-
             #[weak]
             entry,
+            #[strong]
+            sender,
             move |_, response| {
                 if response == "continue" {
+
                     let mut data = data.clone();
+
                     data.device_data.password = Some(entry.text().to_string());
-                    let player_page = RonajoPlayerPage::new(&data.device_data, &data.video_data, &player);
-                    view.push(&player_page);
+                    let sender = sender.clone();
+                    gio::spawn_blocking(move || {
+                        sender
+                            .send_blocking((false, None ))
+                            .expect("thread must be open");
+
+
+                        if let Err(err) = data.device_data.validate() {
+
+                            sender
+                                .send_blocking((true, Some(err.to_string())))
+                                .expect("thread must be open");
+                        } else {
+
+                            sender
+                                .send_blocking((true, None))
+                                .expect("thread must be open");
+                        }
+
+
+                    });
                 }
             }));
+
+        if !data.device_data.use_key {
+
             alert_dialog.present(Some(self));
         } else {
             let mut data = data.clone();
@@ -207,6 +230,30 @@ impl RonajoWindow {
             let player_page = RonajoPlayerPage::new(&data.device_data, &data.video_data, &player);
             view.push(&player_page);
         }
+
+        glib::spawn_future_local(glib::clone!(
+            #[strong]
+            data,
+            #[weak]
+            entry,
+            #[strong]
+            player,
+            #[weak]
+            view,
+            async move {
+                while let Ok(enable_button) = receiver.recv().await {
+
+                    if let None = enable_button.1 {
+                        if enable_button.0 {
+                            let mut data = data.clone();
+                            data.device_data.password = Some(entry.text().to_string());
+                            let player_page = RonajoPlayerPage::new(&data.device_data, &data.video_data, &player);
+                            view.push(&player_page);
+                        }
+                    }
+                }
+
+        }));
 
     }
 
@@ -227,6 +274,13 @@ impl RonajoWindow {
             } else {
                 video_page.set_paused(true);
             }
+        };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let paused = player_page.paused();
+
+            player_page.set_paused(!paused);
+
         };
     }
 
@@ -252,6 +306,14 @@ impl RonajoWindow {
                 video_page.set_mute(true);
             }
         };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let mute = player_page.muted();
+
+            player_page.set_muted(!mute);
+
+        };
+
     }
 
     pub fn raise_volume(&self) {
@@ -264,6 +326,16 @@ impl RonajoWindow {
                 new_volume = 100f64;
             }
             video_page.set_volume(new_volume);
+        };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let volume = player_page.volume();
+            if volume + 10f64 >= 100f64 {
+                player_page.set_volume(100f64);
+            } else {
+                player_page.set_volume(volume + 10f64);
+            }
+
         };
     }
 
@@ -278,6 +350,16 @@ impl RonajoWindow {
             }
             video_page.set_volume(new_volume);
         };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let volume = player_page.volume();
+            if volume - 10f64 <= 0f64 {
+                player_page.set_volume(0f64);
+            } else {
+                player_page.set_volume(volume - 10f64);
+            }
+
+        };
     }
 
     pub fn raise_rate(&self) {
@@ -291,6 +373,16 @@ impl RonajoWindow {
             }
             video_page.set_rate(new_rate);
         };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let rate = player_page.rate();
+            if rate + 0.25 >= 2f64 {
+                player_page.set_rate(2f64);
+            } else {
+                player_page.set_rate(rate + 0.25);
+            }
+
+        };
     }
 
     pub fn lower_rate(&self) {
@@ -303,6 +395,16 @@ impl RonajoWindow {
                 new_rate = 0.25;
             }
             video_page.set_rate(new_rate);
+        };
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let rate = player_page.rate();
+            if rate - 0.25 <= 0.25 {
+                player_page.set_rate(0.25);
+            } else {
+                player_page.set_rate(rate - 0.25);
+            }
+
         };
     }
 
@@ -327,6 +429,15 @@ impl RonajoWindow {
                 let _ = playbin
                     .seek_simple(gst::SeekFlags::FLUSH, seek_time);
             };
+        }
+
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let data = player_page.data();
+            let player = player_page.player();
+
+            gio::spawn_blocking(move || {
+                data.seek_forward(&player).expect("failed to seek");
+            });
         };
     }
 
@@ -346,8 +457,17 @@ impl RonajoWindow {
                 let _ = playbin
                     .seek_simple(gst::SeekFlags::FLUSH, seek_time.0);
             };
+        }
+        if let Some(player_page) = visible_page.downcast_ref::<RonajoPlayerPage>() {
+            let data = player_page.data();
+            let player = player_page.player();
+
+            gio::spawn_blocking(move || {
+                data.seek_backward(&player).expect("failed to seek");
+            });
         };
     }
+
 
     pub fn toggle_loop(&self) {
         let view = self.imp().navigation_view.get();
@@ -622,8 +742,6 @@ impl RonajoWindow {
     pub fn setup_factory(&self) {
         let factory = gtk::SignalListItemFactory::new();
 
-        let view = self.imp().navigation_view.get();
-
         factory.connect_setup(glib::clone!(
             move |_, list_item| {
                 let show_card = RonajoShowCard::new();
@@ -650,29 +768,9 @@ impl RonajoWindow {
                 .and_downcast::<RonajoShowCard>()
                 .expect("item must be ShowObject");
 
-            show_card.imp().show_button.connect_clicked(glib::clone!(
-                    #[weak]
-                    view,
-                    #[weak]
-                    show_card,
-                    move |_| {
-                        let page = RonajoShowPage::new();
-
-                        let data = show_card
-                            .imp()
-                            .data
-                            .borrow()
-                            .clone()
-                            .expect("failed to get data");
-
-                        page.bind(&data);
-
-                        view.push(&page);
-                    }
-                ));
-
-            show_card.bind(&show_object);
+             show_card.bind(&show_object);
         });
+
 
         factory.connect_unbind(move |_, listitem| {
             let show_card = listitem
@@ -686,6 +784,36 @@ impl RonajoWindow {
         });
 
         self.imp().show_view.set_factory(Some(&factory));
+
+        self.imp().show_view.connect_activate(glib::clone!(
+            #[weak(rename_to = view)]
+            self.imp().navigation_view,
+            move |grid_view, position| {
+                let model = grid_view.model().expect("failed to get model");
+                let selection_model = model.downcast_ref::<gtk::NoSelection>()
+                    .expect("model must be of type NoSelection");
+                let list_model = selection_model.model()
+                    .expect("failed to get selection model");
+                let item = list_model.item(position)
+                    .expect("failed to get item");
+
+                let show_object = item
+                    .downcast_ref::<ShowObject>()
+                    .expect("Object must be of type Episode Object");
+
+                let page = RonajoShowPage::new();
+
+                         let data = show_object
+                            .imp()
+                            .data
+                            .borrow()
+                            .clone()
+                            .expect("failed to get data");
+
+                        page.bind(&data);
+
+                        view.push(&page);
+            }));
     }
 
     pub fn library_shows(&self) -> gio::ListStore {
@@ -765,8 +893,6 @@ impl RonajoWindow {
     pub fn setup_library_factory(&self) {
         let factory = gtk::SignalListItemFactory::new();
 
-        let view = self.imp().navigation_view.get();
-
         factory.connect_setup(
             move |_, list_item| {
                 let show_card = RonajoShowCard::new();
@@ -778,9 +904,7 @@ impl RonajoWindow {
             }
         );
 
-        factory.connect_bind(glib::clone!(
-            #[weak]
-            view,
+        factory.connect_bind(
             move |_, listitem| {
             let show_object = listitem
                 .downcast_ref::<gtk::ListItem>()
@@ -796,32 +920,8 @@ impl RonajoWindow {
                 .and_downcast::<RonajoShowCard>()
                 .expect("item must be ShowObject");
 
-            show_card.imp().show_button.connect_clicked(glib::clone!(
-                    #[weak]
-                    view,
-                    #[weak]
-                    show_card,
-                    move |_| {
-                        let page = RonajoShowPage::new();
-
-                        let data = show_card
-                            .imp()
-                            .data
-                            .borrow()
-                            .clone()
-                            .expect("failed to get data");
-
-                        let show = get_library_show(data.mal_id).expect("failed to get library show").1;
-                        page.bind_show_data(&show);
-
-                        page.bind(&data);
-
-                        view.push(&page);
-                    }
-                ));
-
             show_card.bind(&show_object);
-        }));
+        });
 
         factory.connect_unbind(move |_, listitem| {
             let show_card = listitem
@@ -835,6 +935,37 @@ impl RonajoWindow {
         });
 
         self.imp().library_view.set_factory(Some(&factory));
+
+        self.imp().library_view.connect_activate(glib::clone!(
+            #[weak(rename_to = view)]
+            self.imp().navigation_view,
+            move |grid_view, position| {
+                let model = grid_view.model().expect("failed to get model");
+                let selection_model = model.downcast_ref::<gtk::NoSelection>()
+                    .expect("model must be of type NoSelection");
+                let list_model = selection_model.model()
+                    .expect("failed to get selection model");
+                let item = list_model.item(position)
+                    .expect("failed to get item");
+
+                let show_object = item
+                    .downcast_ref::<ShowObject>()
+                    .expect("Object must be of type Episode Object");
+
+                let page = RonajoShowPage::new();
+
+                         let data = show_object
+                            .imp()
+                            .data
+                            .borrow()
+                            .clone()
+                            .expect("failed to get data");
+
+                        let show = get_library_show(data.mal_id).expect("failed to get library show").1;
+                        page.bind_show_data(&show);
+
+                        view.push(&page);
+            }));
     }
 
     fn filter(&self) -> Option<gtk::CustomFilter> {

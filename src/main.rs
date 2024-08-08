@@ -84,4 +84,3 @@ fn main() -> glib::ExitCode {
 
     res
 }
-

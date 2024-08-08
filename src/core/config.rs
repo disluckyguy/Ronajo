@@ -8,92 +8,69 @@ use super::player_data::PlayerData;
 
 pub fn change_config_path(path: String) {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let old_path = if settings.string("config-path") == "Home" {
-        home::home_dir()
+    let old_path = settings.string("config-path").replace("$HOME", &home::home_dir()
         .expect("failed to get home dir")
         .into_os_string()
         .into_string()
-        .expect("failed to convert to string")
-    } else {
-        settings.string("config-path").to_string()
-    };
+        .expect("failed to convert to string"));
 
-    fs::rename(format!("{}/.ronajo", old_path), format!("{}/.ronajo", path))
+    fs::rename(format!("{}/ronajo", old_path), format!("{}/ronajo", path))
         .expect("failed to move folder");
 }
 
 pub fn setup_config() {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let path = if settings.string("config-path") == "Home" {
-        home::home_dir()
-            .expect("failed to get home dir")
-            .into_os_string()
-            .into_string()
-            .expect("failed to convert to string")
-        } else {
-            settings.string("config-path").to_string()
-        };
-    let _ = fs::create_dir(format!("{}/.ronajo", path));
-    let _ = fs::create_dir(format!("{}/.ronajo/ratings", path));
-    let _ = fs::create_dir(format!("{}/.ronajo/notes", path));
-    let _ = fs::create_dir(format!("{}/.ronajo/devices", path));
-    let _ = fs::create_dir(format!("{}/.ronajo/library", path));
+    let path = settings.string("config-path").replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+
+    let _ = fs::create_dir(format!("{}/ronajo", path));
+    let _ = fs::create_dir(format!("{}/ronajo/ratings", path));
+    let _ = fs::create_dir(format!("{}/ronajo/notes", path));
+    let _ = fs::create_dir(format!("{}/ronajo/devices", path));
+    let _ = fs::create_dir(format!("{}/ronajo/library", path));
 }
 
 pub fn library_path() -> String {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let path = if settings.string("config-path") == "Home" {
-        home::home_dir()
-            .expect("failed to get home dir")
-            .into_os_string()
-            .into_string()
-            .expect("failed to convert to string")
-        } else {
-            settings.string("config-path").to_string()
-        };
-    format!("{}/.ronajo/library", path)
+    let path = settings.string("config-path").replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+    format!("{}/ronajo/library", path)
 }
 
 pub fn notes_path() -> String {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let path = if settings.string("config-path") == "Home" {
-        home::home_dir()
-            .expect("failed to get home dir")
-            .into_os_string()
-            .into_string()
-            .expect("failed to convert to string")
-        } else {
-            settings.string("config-path").to_string()
-        };
-    format!("{}/.ronajo/notes", path)
+    let path = settings.string("config-path").replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+    format!("{}/ronajo/notes", path)
 }
 
 pub fn ratings_path() -> String {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let path = if settings.string("config-path") == "Home" {
-        home::home_dir()
-            .expect("failed to get home dir")
-            .into_os_string()
-            .into_string()
-            .expect("failed to convert to string")
-        } else {
-            settings.string("config-path").to_string()
-        };
-    format!("{}/.ronajo/ratings", path)
+    let path = settings.string("config-path").replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+    format!("{}/ronajo/ratings", path)
 }
 
 pub fn devices_path() -> String {
     let settings = gio::Settings::new("io.github.Ronajo");
-    let path = if settings.string("config-path") == "Home" {
-        home::home_dir()
-            .expect("failed to get home dir")
-            .into_os_string()
-            .into_string()
-            .expect("failed to convert to string")
-        } else {
-            settings.string("config-path").to_string()
-        };
-    format!("{}/.ronajo/ratings", path)
+    let path = settings.string("config-path").replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+    format!("{}/ronajo/ratings", path)
 }
 
 pub fn library_shows() -> Result<Vec<(JikanData, ShowData)>, Box<dyn Error>> {
@@ -122,6 +99,8 @@ pub fn get_library_show(id: u32) -> Result<(JikanData, ShowData), Box<dyn Error>
 
 
 pub fn add_to_library(data: &ShowData) -> Result<(), Box<dyn Error>> {
+    let mut data = data.clone();
+    data.in_library = true;
     let json = serde_json::json!({
         "show": data,
         "jikan": data.to_jikan_data()
@@ -227,4 +206,3 @@ pub fn remove_device(name: &str) -> Result<(), Box<dyn Error>>  {
     fs::remove_file(format!("{}/{}", devices_path(), name))?;
     Ok(())
 }
-

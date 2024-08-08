@@ -35,20 +35,12 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
             strings ["Sub", "Dub"]
           };
         }
-        Adw.ActionRow change_config_row {
+        Adw.ComboRow change_config_row {
           title: "Configs Location";
           subtitle: "home";
-          activatable-widget: change_config_button;
-          [suffix]
-          Button change_config_button {
-            margin-top: 5;
-            margin-bottom: 5;
-            action-name: "win.change-config";
-            icon-name: "edit-symbolic";
-            styles [
-              "flat"
-            ]
-          }
+          model: StringList {
+            strings ["$HOME/.var/app/io.github.Ronajo", "$HOME/.config"]
+          };
         }
       }
     }

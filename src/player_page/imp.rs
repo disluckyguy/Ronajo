@@ -30,9 +30,16 @@ pub struct RonajoPlayerPage {
     pub total_episodes: Cell<u32>,
     #[property(get, set, construct)]
     pub translation: RefCell<String>,
-    #[property(get, set, construct, default = 100f64)]
+    #[property(
+        get,
+        set,
+        default = 100f64,
+        minimum = 0f64,
+        maximum = 100f64,
+        construct
+    )]
     pub volume: Cell<f64>,
-    #[property(get, set, construct, default = 1f64)]
+    #[property(get, set, default = 1f64, minimum = 0.25, maximum = 2f64, construct)]
     pub rate: Cell<f64>,
     #[property(get, set, construct, default = false)]
     pub paused: Cell<bool>,

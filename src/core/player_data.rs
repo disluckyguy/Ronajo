@@ -42,7 +42,6 @@ impl PlayerData {
 
     pub fn validate(&self)  -> Result<(), Box<dyn Error>> {
         if let Err(err) = self.connect() {
-            println!("error");
             return Err(err);
         }
         Ok(())
@@ -424,4 +423,3 @@ struct SocketResponse {
     pub request_id: i32,
     pub error: String
 }
-

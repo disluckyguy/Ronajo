@@ -2,7 +2,11 @@
 <schemalist gettext-domain="ronajo">
 	<schema id="io.github.Ronajo" path="/io/github/Ronajo/">
 	  <key name="config-path" type="s">
-	    <default>'Home'</default>
+	    <choices>
+	      <choice value='$HOME/.var/app/io.github.Ronajo'/>
+        <choice value='$HOME/.config'/>
+	    </choices>
+	    <default>'$HOME/.var/app/io.github.Ronajo'</default>
       <summary>Path of the config folder</summary>
 	  </key>
     <key name="filter" type="s">

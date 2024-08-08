@@ -14,8 +14,6 @@ pub struct RonajoShowCard {
     #[template_child]
     pub picture: TemplateChild<gtk::Picture>,
     #[template_child]
-    pub show_button: TemplateChild<gtk::Button>,
-    #[template_child]
     pub title_label: TemplateChild<gtk::Label>,
     pub bindings: cell::RefCell<vec::Vec<glib::Binding>>,
     pub data: cell::RefCell<Option<JikanData>>,

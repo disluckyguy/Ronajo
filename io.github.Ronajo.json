@@ -14,7 +14,7 @@
         "--socket=pulseaudio",
         "--device=dri",
         "--socket=wayland",
-        "--filesystem=home",
+        "--filesystem=~/.config:create",
         "--socket=ssh-auth"
     ],
     "build-options" : {

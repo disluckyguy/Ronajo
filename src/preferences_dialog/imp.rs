@@ -9,7 +9,7 @@ use std::cell::OnceCell;
 #[template(file = "src/gtk/preferences-dialog.blp")]
 pub struct RonajoPreferencesDialog {
     #[template_child]
-    pub change_config_row: TemplateChild<adw::ActionRow>,
+    pub config_row: TemplateChild<adw::ComboRow>,
     #[template_child]
     pub change_config_button: TemplateChild<gtk::Button>,
     #[template_child]
@@ -50,7 +50,7 @@ impl ObjectImpl for RonajoPreferencesDialog {
         obj.setup_settings();
         obj.setup_callbacks();
 
-        let config_row = obj.imp().change_config_row.get();
+        let config_row = obj.imp().config_row.get();
 
         obj.settings()
             .bind("config-path", &config_row, "subtitle")

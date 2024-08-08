@@ -329,7 +329,7 @@ impl RonajoShowPage {
     pub fn setup_factory(&self) {
         let factory = gtk::SignalListItemFactory::new();
 
-        factory.connect_setup(move |_, list_item| {
+       factory.connect_setup(move |_, list_item| {
             let episode_row = RonajoEpisodeRow::new();
 
             list_item
@@ -338,15 +338,8 @@ impl RonajoShowPage {
                 .set_child(Some(&episode_row));
         });
 
-        factory.connect_bind(glib::clone!(
-        #[strong(rename_to = data)]
-        self.data(),
-        #[weak(rename_to = remote_play_row)]
-        self.imp().remote_play_row,
-        #[weak(rename_to = device_row)]
-        self.imp().devices_row,
+        factory.connect_bind(
         move |_, listitem| {
-
             let episode_object = listitem
                 .downcast_ref::<gtk::ListItem>()
                 .expect("item must be ListItem")
@@ -362,19 +355,42 @@ impl RonajoShowPage {
                 .expect("item must be EpisodeRow");
 
             episode_row.bind(&episode_object);
+        });
 
-            episode_row.connect_clicked(glib::clone!(
-            #[weak]
-            episode_row,
-            #[weak]
-            episode_object,
-            #[weak]
-            remote_play_row,
-            #[weak]
-            device_row,
-            #[strong]
-            data,
-            move |_| {
+
+        factory.connect_unbind(move |_, listitem| {
+            let episode_row = listitem
+                .downcast_ref::<gtk::ListItem>()
+                .expect("item must be ListItem")
+                .child()
+                .and_downcast::<RonajoEpisodeRow>()
+                .expect("item must be EpisodeRow");
+
+            episode_row.unbind();
+
+        });
+        self.imp().episode_view.set_factory(Some(&factory));
+
+        self.imp().episode_view.connect_activate(glib::clone!(
+            #[strong(rename_to = data)]
+        self.data(),
+        #[weak(rename_to = remote_play_row)]
+        self.imp().remote_play_row,
+        #[weak(rename_to = device_row)]
+        self.imp().devices_row,
+            move |view, position| {
+                let model = view.model().expect("failed to get model");
+                let selection_model = model.downcast_ref::<gtk::NoSelection>()
+                    .expect("model must be of type NoSelection");
+                let list_model = selection_model.model()
+                    .expect("failed to get selection model");
+                let item = list_model.item(position)
+                    .expect("failed to get item");
+
+                let episode_object = item
+                    .downcast_ref::<EpisodeObject>()
+                    .expect("Object must be of type Episode Object");
+
                 let id = episode_object.allanime_id().expect("failed to get id");
                 let translation = episode_object.translation();
                 let number = episode_object.number();
@@ -408,26 +424,12 @@ impl RonajoShowPage {
                         "device_data": data,
                         "video_data": json
                     });
-                    episode_row.activate_action("win.play-remote-video", Some(&paramter.to_string().to_variant())).expect("action does not exist");
+                    view.activate_action("win.play-remote-video", Some(&paramter.to_string().to_variant())).expect("action does not exist");
                 } else {
-                    episode_row.activate_action("win.play-video", Some(&json.to_string().to_variant())).expect("action does not exist");
+                    view.activate_action("win.play-video", Some(&json.to_string().to_variant())).expect("action does not exist");
                 }
             }));
 
-        }));
-
-        factory.connect_unbind(move |_, listitem| {
-            let episode_row = listitem
-                .downcast_ref::<gtk::ListItem>()
-                .expect("item must be ListItem")
-                .child()
-                .and_downcast::<RonajoEpisodeRow>()
-                .expect("item must be EpisodeRow");
-
-            episode_row.unbind();
-        });
-
-        self.imp().episode_view.set_factory(Some(&factory));
     }
 
     pub fn setup_bindings(&self) {
@@ -487,4 +489,3 @@ impl RonajoShowPage {
             .build();
     }
 }
-

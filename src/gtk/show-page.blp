@@ -196,43 +196,46 @@ template $RonajoShowPage : Adw.NavigationPage {
                 hexpand: true;
                 vexpand: true;
                 height-request: 200;
-            }
+              }
 
-            Label episode_title{
-              margin-top: 5;
-              margin-bottom: 5;
-              margin-start: 5;
-              margin-end: 5;
-              halign: start;
-              label: "Episodes";
-              styles [
-                "heading"
-              ]
-            }
-            ListView episode_view {
-              styles [
-                "transparent_bg",
-                "card"
-              ]
-              overflow: hidden;
-              show-separators: true;
+              Label episode_title{
+                margin-top: 5;
+                margin-bottom: 5;
+                margin-start: 5;
+                margin-end: 5;
+                halign: start;
+                label: "Episodes";
+                styles [
+                  "heading"
+                ]
+              }
+              ScrolledWindow {
+                height-request: 300;
+
+                ListView episode_view {
+                  styles [
+                    "transparent_bg",
+                    "card"
+                  ]
+                  single-click-activate: true;
+                  overflow: hidden;
+                  show-separators: true;
+                }
+              }
+
             }
           }
-        }
         };
-
         }
         StackPage {
           name: "spinner";
           child: Adw.Spinner {
-              width-request: 48;
-              height-request: 48;
-              halign: center;
-              valign: center;
-          };
+            width-request: 48;
+            height-request: 48;
+            halign: center;
+            valign: center;
+        };
       }
     };
-
-
   }
 }
