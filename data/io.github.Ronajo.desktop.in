@@ -1,8 +1,11 @@
 [Desktop Entry]
-Name=Ronajo
-Exec=ronajo
-Icon=io.github.Ronajo
-Terminal=false
+Version=0.6
 Type=Application
-Categories=GTK;
-StartupNotify=true
+
+Name=Ronajo
+Comment=An app for easily browsing and watching anime.
+Categories=Audio;Video;GNOME;Anime;Shows;TV;GTK;Browsing
+
+Icon=io.github.Ronajo
+Exec=ronajo
+Terminal=false

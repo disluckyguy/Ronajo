@@ -104,12 +104,13 @@ impl RonajoShowPage {
             #[strong(rename_to = data)]
             self.data(),
             move |button| {
-
             if button.is_active() {
                 let _ = add_to_library(&data);
             } else {
                 let _ = remove_from_library(data.mal_id);
             }
+            button.activate_action("win.reload-library", None)
+                .expect("action does not exist");
         }));
 
 
@@ -171,6 +172,12 @@ impl RonajoShowPage {
         let device_names = device_names().expect("failed to get device names");
         let devices_slice: Vec<_> = device_names.iter().map(String::as_str).collect();
         let devices_list = gtk::StringList::new(&devices_slice);
+
+        if devices_list.n_items() == 0 {
+            self.imp().remote_play_row.set_visible(false);
+        } else {
+            self.imp().remote_play_row.set_visible(true);
+        }
 
         self.imp().devices_row.set_model(Some(&devices_list));
 

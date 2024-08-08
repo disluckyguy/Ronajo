@@ -116,22 +116,15 @@ impl RonajoPlayerPage {
                     async move {
                         while let Ok(position) = receiver.recv().await {
                             page.set_position(position);
-                            let difference = page.duration() - page.position();
-                            if difference <= 10f64 && page.duration() != 0f64 {
-                                if page.episode_number() == page.total_episodes() {
-                                    page.activate_action("navigation.pop", None)
-                                        .expect("action does not exist");
-                                } else {
-                                    page.play_next_episode();
-                                }
-                            }
                         }
                     }
                 ));
 
+
                 let (sender, receiver) = async_channel::bounded(1);
                 let data = page.data();
                 let player = page.player();
+
                 gio::spawn_blocking(move || {
 
                     if let Ok(duration) = data.get_duration(&player) {
@@ -157,6 +150,25 @@ impl RonajoPlayerPage {
             };
             glib::ControlFlow::Continue
             });
+
+
+        imp.video_scale.connect_value_changed(glib::clone!(
+            #[weak(rename_to = page)]
+            self,
+            move |scale| {
+
+                let value = scale.value();
+                let difference = (page.duration() - value).abs();
+                if difference <= 10f64 && page.duration() != 0f64 {
+                if page.episode_number() == page.total_episodes() {
+                    page.activate_action("navigation.pop", None)
+                        .expect("action does not exist");
+                } else {
+                    scale.set_value(0f64);
+                    page.play_next_episode();
+                }
+            }
+        }));
 
 
 

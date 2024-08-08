@@ -1,13 +1,9 @@
-# Ronajo
-
 <div align="center">
-    <img src="data/icons/hicolor/scalable/apps/io.github.Ronajo.svg" width="128" height="128">
+<img src="data/icons/hicolor/scalable/apps/io.github.Ronajo.svg" width="128" height="128">
+
 </div>
 
-    
-<img src="data/screenshots/Screenshot1.png">
-<img src="data/screenshots/Screenshot2.png">
-<img src="data/screenshots/Screenshot3.png">
+
 
 ## About
 
@@ -27,5 +23,12 @@ Ronajo has a tui counterpart, [Husbando](https://github.com/HerbGlitch/husbando)
 - Thanks to [Herbglitch](https://github.com/HerbGlitch) for making the scraping algorithm.
 - Thanks to [ani-cli](https://github.com/pystardust/ani-cli) for inspiring this app.
 
+## Showcase
 
+<div align="center">
+ 
+<img src="data/screenshots/Screenshot1.png">
+<img src="data/screenshots/Screenshot2.png">
+<img src="data/screenshots/Screenshot3.png">
+</div>
 

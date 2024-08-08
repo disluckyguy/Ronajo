@@ -1,9 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
-	<id>io.github.Ronajo.desktop</id>
-	<metadata_license>CC0-1.0</metadata_license>
-	<project_license>GPL-3.0-or-later</project_license>
-	<description>
-	  <p>No description</p>
-	</description>
+<component type="desktop-application">
+  <id>io.github.Ronajo</id>
+  
+  <name>Ronajo</name>
+  <summary>An app for easily browsing and watching anime.</summary>
+  
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  
+  <description>
+    <p>
+      Ronajo is an app for browsing and watching anime powered by GStreamer. The app relies on Allanime and The Jikan API.  The app supports playing Videos locally and remotely.
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">io.github.Ronajo.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/disluckyguy/Ronajo/blob/main/data/screenshots/Screenshot1.png?raw=true</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/disluckyguy/Ronajo/blob/main/data/screenshots/Screenshot2.png?raw=true</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/disluckyguy/Ronajo/blob/main/data/screenshots/Screenshot3.png?raw=true</image>
+    </screenshot>
+  </screenshots>
 </component>

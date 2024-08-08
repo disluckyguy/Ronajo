@@ -14,8 +14,13 @@ pub fn change_config_path(path: String) {
         .into_string()
         .expect("failed to convert to string"));
 
-    fs::rename(format!("{}/ronajo", old_path), format!("{}/ronajo", path))
-        .expect("failed to move folder");
+    let path = path.replace("$HOME", &home::home_dir()
+        .expect("failed to get home dir")
+        .into_os_string()
+        .into_string()
+        .expect("failed to convert to string"));
+    // fs::copy_dir(format!("{}/ronajo", old_path), format!("{}/ronajo", path))
+    //     .expect("failed to move folder");
 }
 
 pub fn setup_config() {

@@ -35,7 +35,8 @@ template $RonajoPreferencesDialog : Adw.PreferencesDialog {
             strings ["Sub", "Dub"]
           };
         }
-        Adw.ComboRow change_config_row {
+        Adw.ComboRow config_row {
+          visible: false;
           title: "Configs Location";
           subtitle: "home";
           model: StringList {

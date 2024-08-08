@@ -11,8 +11,6 @@ pub struct RonajoPreferencesDialog {
     #[template_child]
     pub config_row: TemplateChild<adw::ComboRow>,
     #[template_child]
-    pub change_config_button: TemplateChild<gtk::Button>,
-    #[template_child]
     pub enable_nsfw: TemplateChild<adw::SwitchRow>,
     #[template_child]
     pub enable_ecchi: TemplateChild<adw::SwitchRow>,

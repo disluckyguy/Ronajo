@@ -135,6 +135,13 @@ impl RonajoWindow {
         });
     }
 
+    pub fn reload_library(&self) {
+        self.library_shows().remove_all();
+        for show in library_shows().expect("failed to get library shows") {
+            self.new_library_show(show.0);
+        }
+    }
+
     pub fn play_video(&self, _action: &gio::SimpleAction, param: Option<&adw::glib::Variant>) {
         let view = self.imp().navigation_view.get();
         let parameter = param
@@ -482,9 +489,15 @@ impl RonajoWindow {
     }
 
     fn setup_gactions(&self) {
+
+        let reload_library_action = gio::ActionEntry::builder("reload-library")
+            .activate(move |window: &Self, _, _| window.reload_library())
+            .build();
+
         let change_config_action = gio::ActionEntry::builder("change-config")
             .activate(move |window: &Self, _, _| window.change_config_path())
             .build();
+
         let play_video_action = gio::ActionEntry::builder("play-video")
             .parameter_type(Some(&String::static_variant_type()))
             .activate(move |window: &Self, action, parameter| window.play_video(action, parameter))
@@ -502,7 +515,7 @@ impl RonajoWindow {
         let action_filter = self.settings().create_action("filter");
         self.add_action(&action_filter);
 
-        self.add_action_entries([change_config_action, play_video_action, play_remote_video_action, toggle_fullscreen_action]);
+        self.add_action_entries([change_config_action, play_video_action, play_remote_video_action, toggle_fullscreen_action, reload_library_action,]);
 
 
         let seek_forward_action = gio::ActionEntry::builder("seek-forward")
