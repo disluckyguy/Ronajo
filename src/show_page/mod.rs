@@ -174,9 +174,11 @@ impl RonajoShowPage {
         let devices_list = gtk::StringList::new(&devices_slice);
 
         if devices_list.n_items() == 0 {
-            self.imp().remote_play_row.set_visible(false);
+            self.imp().enable_remote_play.set_sensitive(false);
+            self.imp().devices_row.set_sensitive(false);
         } else {
-            self.imp().remote_play_row.set_visible(true);
+            self.imp().enable_remote_play.set_sensitive(true);
+            self.imp().devices_row.set_sensitive(true);
         }
 
         self.imp().devices_row.set_model(Some(&devices_list));
@@ -381,8 +383,8 @@ impl RonajoShowPage {
         self.imp().episode_view.connect_activate(glib::clone!(
             #[strong(rename_to = data)]
         self.data(),
-        #[weak(rename_to = remote_play_row)]
-        self.imp().remote_play_row,
+        #[weak(rename_to = enable_remote_play)]
+        self.imp().enable_remote_play,
         #[weak(rename_to = device_row)]
         self.imp().devices_row,
             move |view, position| {
@@ -420,7 +422,7 @@ impl RonajoShowPage {
                     "total_episodes": total_episodes
                 });
 
-                if remote_play_row.enables_expansion() {
+                if enable_remote_play.is_active() {
                     let selected_item = device_row.selected_item().expect("failed to get selected item");
                     let string_object = selected_item
                         .downcast_ref::<gtk::StringObject>()

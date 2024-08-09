@@ -267,7 +267,7 @@ impl RonajoPlayerPage {
                 let data = data.clone();
                 let player = player.clone();
                 gio::spawn_blocking(move || {
-                    data.screenshot(&player).expect("failed to screenshot");
+                    let _ = data.screenshot(&player);
                 });
             }
         ));

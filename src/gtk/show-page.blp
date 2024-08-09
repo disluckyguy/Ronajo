@@ -145,8 +145,9 @@ template $RonajoShowPage : Adw.NavigationPage {
                 }
                 Adw.ExpanderRow remote_play_row {
                   title: "Remote Play";
-                  show-enable-switch: true;
-                  enable-expansion: false;
+                  Adw.SwitchRow enable_remote_play {
+                    title: "Enable Remote Play";
+                  }
                   Adw.ComboRow devices_row {
                     title: "Device";
                   }
@@ -214,7 +215,6 @@ template $RonajoShowPage : Adw.NavigationPage {
 
                 ListView episode_view {
                   styles [
-                    "transparent_bg",
                     "card"
                   ]
                   single-click-activate: true;

@@ -1,10 +1,10 @@
 use gtk::gio;
 use gtk::prelude::*;
-use std::fs;
 use super::show_data::*;
 use std::error::Error;
 use std::io::Write;
 use super::player_data::PlayerData;
+use std::fs;
 
 pub fn change_config_path(path: String) {
     let settings = gio::Settings::new("io.github.Ronajo");
@@ -19,8 +19,9 @@ pub fn change_config_path(path: String) {
         .into_os_string()
         .into_string()
         .expect("failed to convert to string"));
-    // fs::copy_dir(format!("{}/ronajo", old_path), format!("{}/ronajo", path))
-    //     .expect("failed to move folder");
+    copy_dir::copy_dir(&format!("{}/ronajo", old_path), &format!("{}/ronajo", path))
+        .expect("failed to move folder");
+     fs::remove_dir_all(format!("{}/ronajo", old_path)).expect("failed to remove directory");
 }
 
 pub fn setup_config() {
@@ -75,7 +76,7 @@ pub fn devices_path() -> String {
         .into_os_string()
         .into_string()
         .expect("failed to convert to string"));
-    format!("{}/ronajo/ratings", path)
+    format!("{}/ronajo/devices", path)
 }
 
 pub fn library_shows() -> Result<Vec<(JikanData, ShowData)>, Box<dyn Error>> {

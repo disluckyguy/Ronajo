@@ -21,6 +21,71 @@
                 <property name="action-name">app.quit</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Fullscreen/Unfullscreen</property>
+                <property name="action-name">win.toggle-fullscreen</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+      <object class="GtkShortcutsGroup">
+        <property name="title" translatable="yes" context="shortcut window">Playback</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Seek Forward</property>
+                <property name="action-name">vid.seek-forward</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Seek Backward</property>
+                <property name="action-name">vid.seek-backward</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Toggle Auto Hide</property>
+                <property name="action-name">vid.toggle-autohide</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Toggle Loop</property>
+                <property name="action-name">vid.toggle-loop</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Mute/Unmute</property>
+                <property name="action-name">vid.toggle-mute</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Raise Volume</property>
+                <property name="action-name">vid.raise-volume</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Lower Volume</property>
+                <property name="action-name">vid.lower-volume</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Raise Rate</property>
+                <property name="action-name">vid.raise-rate</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes" context="shortcut window">Lower Rate</property>
+                <property name="action-name">vid.lower-rate</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

@@ -67,6 +67,48 @@ impl DevicesDialog {
             }
         ));
 
+        imp.address_row.connect_changed(glib::clone!(
+            #[weak(rename_to = save_button)]
+            imp.save_button.get(),
+            #[strong(rename_to = name_row)]
+            imp.name_row.get(),
+            #[strong(rename_to = username_row)]
+            imp.username_row.get(),
+            #[strong(rename_to = password_row)]
+            imp.password_row.get(),
+            #[strong(rename_to = key_auth_button)]
+            imp.key_auth_button.get(),
+            #[strong(rename_to = empty_address)]
+            imp.empty_address.get(),
+            move |address_row| {
+                let address_empty = address_row.text().is_empty();
+                let username_empty = username_row.text().is_empty();
+                let password_empty = password_row.text().is_empty();
+                let name_empty = name_row.text().is_empty();
+                if key_auth_button.is_active() {
+                    if username_empty || address_empty || name_empty {
+                        save_button.set_sensitive(false);
+                    } else {
+                        save_button.set_sensitive(true);
+                    }
+
+
+                } else {
+                    if username_empty || address_empty || password_empty || name_empty {
+                        save_button.set_sensitive(false);
+                    } else {
+                        save_button.set_sensitive(true);
+                    }
+
+                }
+                if address_empty {
+                    empty_address.set_visible(true);
+                } else {
+                    empty_address.set_visible(false);
+                }
+        }));
+
+
         imp.key_auth_button.connect_toggled(glib::clone!(
             #[weak(rename_to = save_button)]
             imp.save_button.get(),

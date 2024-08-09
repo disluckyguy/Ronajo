@@ -49,6 +49,8 @@ pub struct RonajoShowPage {
     pub devices_row: TemplateChild<adw::ComboRow>,
     #[template_child]
     pub remote_play_row: TemplateChild<adw::ExpanderRow>,
+    #[template_child]
+    pub enable_remote_play: TemplateChild<adw::SwitchRow>,
 
     #[property(get, set, nullable, construct)]
     allanime_id: RefCell<Option<String>>,
